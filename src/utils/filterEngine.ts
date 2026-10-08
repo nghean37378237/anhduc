@@ -10,6 +10,60 @@ import {
 } from '../types';
 import { FILTER_PRESETS } from './constants';
 
+export const FONT_PRIMARY = "'Be Vietnam Pro', 'Montserrat', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
+export const FONT_MONO = "'JetBrains Mono', monospace";
+
+/**
+ * Ensures all Vietnamese web fonts are loaded into the browser font cache
+ * before canvas drawing, preventing fallback fonts or broken diacritics.
+ */
+export async function ensureVietnameseFontsLoaded(): Promise<void> {
+  if (typeof document === 'undefined' || !document.fonts) return;
+  try {
+    await document.fonts.ready;
+    const fontsToLoad = [
+      "400 16px 'Be Vietnam Pro'",
+      "600 16px 'Be Vietnam Pro'",
+      "700 20px 'Be Vietnam Pro'",
+      "800 24px 'Be Vietnam Pro'",
+      "900 24px 'Be Vietnam Pro'",
+      "600 20px 'Montserrat'",
+      "700 20px 'Montserrat'",
+      "800 24px 'Montserrat'",
+      "900 24px 'Montserrat'",
+      "600 20px 'Plus Jakarta Sans'",
+      "700 20px 'Plus Jakarta Sans'",
+      "600 20px 'Lora'",
+      "700 20px 'Lora'",
+      "700 16px 'JetBrains Mono'",
+    ];
+    await Promise.allSettled(fontsToLoad.map((f) => document.fonts.load(f)));
+    await document.fonts.ready;
+  } catch (err) {
+    console.warn('Font loading check:', err);
+  }
+}
+
+/**
+ * Standard CSS Canvas 2D font generator:
+ * Follows exact W3C order: [italic] [weight] [size]px [family]
+ */
+export function getCanvasFont(
+  sizePx: number,
+  weight: string | number = '700',
+  isItalic = false,
+  preferredFamily = 'Be Vietnam Pro'
+): string {
+  const cleanFamily = (preferredFamily || 'Be Vietnam Pro')
+    .replace(/['"]/g, '')
+    .split(',')[0]
+    .trim();
+  const stylePart = isItalic ? 'italic ' : '';
+  const weightPart = weight || '700';
+  const roundedSize = Math.max(10, Math.round(sizePx));
+  return `${stylePart}${weightPart} ${roundedSize}px "${cleanFamily}", "Be Vietnam Pro", Montserrat, sans-serif`;
+}
+
 export function getAdjustmentsCss(adj: PhotoAdjustments): string {
   const parts: string[] = [];
 
@@ -119,7 +173,14 @@ export function drawFilmGrain(
 }
 
 /**
- * Helper to wrap and draw text with keyword highlighting on canvas
+ * Standardize text normalization for Vietnamese unicode characters
+ */
+function normalizeVietnamese(str: string): string {
+  return str.normalize('NFC').toUpperCase().trim();
+}
+
+/**
+ * Draws wrapped text with accurate Vietnamese font support and keyword highlights
  */
 function drawTextWithHighlights(
   ctx: CanvasRenderingContext2D,
@@ -130,36 +191,69 @@ function drawTextWithHighlights(
   startX: number,
   startY: number,
   maxWidth: number,
-  lineHeight: number
+  lineHeight: number,
+  highlightStyle: 'color' | 'box' = 'color'
 ) {
+  ctx.save();
+  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left';
+
+  const normText = text.normalize('NFC');
   const highlightPhrases = highlightWordsStr
     .split(',')
-    .map((w) => w.trim().toUpperCase())
+    .map(normalizeVietnamese)
     .filter(Boolean);
 
-  const words = text.split(' ');
+  const words = normText.split(' ');
   let lineWords: { word: string; isHighlight: boolean }[] = [];
   let currentY = startY;
 
+  const renderLine = (items: { word: string; isHighlight: boolean }[], y: number) => {
+    let drawX = startX;
+    for (const item of items) {
+      const wordMetrics = ctx.measureText(item.word);
+      const wordWidth = wordMetrics.width;
+      const spaceWidth = ctx.measureText(' ').width;
+
+      if (item.isHighlight && highlightStyle === 'box') {
+        const padX = 4;
+        const padY = 2;
+        ctx.fillStyle = highlightColor;
+        ctx.beginPath();
+        ctx.roundRect(drawX - padX, y - padY, wordWidth + padX * 2, lineHeight, 4);
+        ctx.fill();
+
+        // High contrast text inside box
+        ctx.fillStyle =
+          highlightColor === '#facc15' ||
+          highlightColor === '#eab308' ||
+          highlightColor === '#ffffff'
+            ? '#09090b'
+            : '#ffffff';
+        ctx.fillText(item.word, drawX, y);
+      } else {
+        ctx.fillStyle = item.isHighlight ? highlightColor : defaultColor;
+        ctx.fillText(item.word, drawX, y);
+      }
+
+      drawX += wordWidth + spaceWidth;
+    }
+  };
+
   for (let i = 0; i < words.length; i++) {
     const rawWord = words[i];
-    const cleanWordUpper = rawWord.replace(/^[“"']|[”"',.?!:;]$/g, '').toUpperCase();
-    const isHighlight = highlightPhrases.some((phrase) =>
-      phrase.includes(cleanWordUpper) || cleanWordUpper.includes(phrase)
-    );
+    const cleanWordUpper = normalizeVietnamese(rawWord.replace(/^[“"']|[”"',.?!:;]$/g, ''));
 
-    // Test line width
+    const isHighlight = highlightPhrases.some((phrase) => {
+      if (!phrase || !cleanWordUpper) return false;
+      return phrase.includes(cleanWordUpper) || cleanWordUpper.includes(phrase);
+    });
+
     const testLineStr = [...lineWords.map((lw) => lw.word), rawWord].join(' ');
     const metrics = ctx.measureText(testLineStr);
 
     if (metrics.width > maxWidth && lineWords.length > 0) {
-      // Draw current line
-      let drawX = startX;
-      for (const item of lineWords) {
-        ctx.fillStyle = item.isHighlight ? highlightColor : defaultColor;
-        ctx.fillText(item.word, drawX, currentY);
-        drawX += ctx.measureText(item.word + ' ').width;
-      }
+      renderLine(lineWords, currentY);
       currentY += lineHeight;
       lineWords = [{ word: rawWord, isHighlight }];
     } else {
@@ -167,26 +261,22 @@ function drawTextWithHighlights(
     }
   }
 
-  // Draw last line
   if (lineWords.length > 0) {
-    let drawX = startX;
-    for (const item of lineWords) {
-      ctx.fillStyle = item.isHighlight ? highlightColor : defaultColor;
-      ctx.fillText(item.word, drawX, currentY);
-      drawX += ctx.measureText(item.word + ' ').width;
-    }
+    renderLine(lineWords, currentY);
   }
+
+  ctx.restore();
 }
 
 /**
- * Draws the News / Social Media Commercial Footer Banner with Logo Badge & Highlights
+ * Draws the Commercial / News Banner with rock-solid Vietnamese font rendering
  */
-export function drawFooterBanner(
+export async function drawFooterBanner(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   banner: FooterBannerConfig
-) {
+): Promise<void> {
   if (!banner.enabled) return;
 
   const bannerHeight = (banner.heightPercent / 100) * height;
@@ -195,26 +285,25 @@ export function drawFooterBanner(
   ctx.save();
 
   // 1. Banner Background
-  ctx.fillStyle = banner.backgroundColor;
+  ctx.fillStyle = banner.backgroundColor || '#facc15';
   ctx.fillRect(0, bannerY, width, bannerHeight);
 
-  // Subtle pattern if enabled
+  // Pattern overlay (grid dots as in original showroom image)
   if (banner.pattern === 'grid-dots') {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
     const dotGap = Math.max(8, width * 0.012);
     for (let gx = 0; gx < width; gx += dotGap) {
       for (let gy = bannerY; gy < height; gy += dotGap) {
-        ctx.fillRect(gx, gy, 1.5, 1.5);
+        ctx.fillRect(gx, gy, 1.8, 1.8);
       }
     }
   }
 
-  // 2. Green/Themed Accent Line with Dot at the top border (As seen in Theanh28 templates!)
-  const themeColor = banner.brandLogo.themeColor || '#059669';
+  // 2. Themed Accent Line with Dot at the top border
+  const themeColor = banner.brandLogo.themeColor || '#ea580c';
   ctx.fillStyle = themeColor;
   ctx.fillRect(0, bannerY, width, 4);
 
-  // Accent Dot on the line
   ctx.beginPath();
   ctx.arc(width * 0.55, bannerY + 2, 6, 0, Math.PI * 2);
   ctx.fillStyle = themeColor;
@@ -225,21 +314,18 @@ export function drawFooterBanner(
     const badgeH = Math.max(34, bannerHeight * 0.22);
     const badgeW = Math.max(120, badgeH * 3.4);
     const badgeX = width * 0.04;
-    const badgeY = bannerY - badgeH * 0.5; // Overlaps top photo and banner!
+    const badgeY = bannerY - badgeH * 0.5;
 
     ctx.save();
-    // Shadow
     ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 3;
 
-    // Rounded Pill shape
     ctx.fillStyle = themeColor;
     ctx.beginPath();
     ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeH / 2);
     ctx.fill();
 
-    // Circle icon inside pill on the left
     ctx.shadowColor = 'transparent';
     const circleRadius = badgeH * 0.38;
     const circleCenterX = badgeX + badgeH * 0.5;
@@ -250,22 +336,54 @@ export function drawFooterBanner(
     ctx.arc(circleCenterX, circleCenterY, circleRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Text/Symbol inside circle (e.g. '28')
-    ctx.fillStyle = themeColor;
-    ctx.font = `900 ${badgeH * 0.44}px 'Syne', sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(banner.brandLogo.symbolText || '28', circleCenterX, circleCenterY);
+    // Custom Logo Image or Symbol Text
+    let drewCustomLogo = false;
+    if (banner.brandLogo.customImageUrl) {
+      try {
+        const logoImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = banner.brandLogo.customImageUrl!;
+        });
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(circleCenterX, circleCenterY, circleRadius * 0.9, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(
+          logoImg,
+          circleCenterX - circleRadius,
+          circleCenterY - circleRadius,
+          circleRadius * 2,
+          circleRadius * 2
+        );
+        ctx.restore();
+        drewCustomLogo = true;
+      } catch (e) {
+        drewCustomLogo = false;
+      }
+    }
 
-    // Text on the right of circle (e.g. 'NEWS')
+    if (!drewCustomLogo) {
+      // Text inside circle (e.g. 37 or 28)
+      ctx.fillStyle = themeColor;
+      ctx.font = getCanvasFont(badgeH * 0.44, '900', false, 'Montserrat');
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(banner.brandLogo.symbolText || '37', circleCenterX, circleCenterY);
+    }
+
+    // Text on the right of circle (e.g. CAR or NEWS)
     ctx.fillStyle = '#ffffff';
-    ctx.font = `800 ${badgeH * 0.42}px 'Syne', sans-serif`;
+    ctx.font = getCanvasFont(badgeH * 0.42, '800', false, 'Montserrat');
     ctx.textAlign = 'left';
-    ctx.fillText(banner.brandLogo.badgeText || 'NEWS', badgeX + badgeH * 1.05, circleCenterY);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(banner.brandLogo.badgeText || 'CAR', badgeX + badgeH * 1.05, circleCenterY);
     ctx.restore();
   }
 
-  // 4. Quotation Badge "“ ”" if quote style (As in image 4)
+  // 4. Quotation Badge "“ ”" if enabled
   if (banner.quoteBadge && banner.quoteBadge.enabled) {
     const qbW = 54;
     const qbH = 28;
@@ -273,16 +391,16 @@ export function drawFooterBanner(
     const qbY = bannerY + 12;
 
     ctx.save();
-    ctx.fillStyle = banner.quoteBadge.bgColor || '#facc15';
+    ctx.fillStyle = banner.quoteBadge.bgColor || '#ea580c';
     ctx.beginPath();
     ctx.roundRect(qbX, qbY, qbW, qbH, 4);
     ctx.fill();
 
-    ctx.fillStyle = '#09090b';
-    ctx.font = "900 24px 'Syne', sans-serif";
+    ctx.fillStyle = '#ffffff';
+    ctx.font = getCanvasFont(22, '900', false, 'Montserrat');
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('“ ”', qbX + qbW / 2, qbY + qbH / 2 + 3);
+    ctx.fillText('“ ”', qbX + qbW / 2, qbY + qbH / 2 + 2);
     ctx.restore();
   }
 
@@ -290,71 +408,74 @@ export function drawFooterBanner(
   const contentPadX = width * 0.045;
   const contentStartY = bannerY + bannerHeight * 0.28;
   const usableWidth = width - contentPadX * 2;
+  const preferredFontFamily = banner.headline.fontFamily || 'Montserrat';
 
   if (banner.twoColumns && banner.twoColumns.enabled) {
-    // 2-Columns layout (as in Doctor image 3)
     const colWidth = usableWidth * 0.48;
     const col2X = contentPadX + usableWidth * 0.52;
 
-    // Col 1 Title
     ctx.fillStyle = banner.twoColumns.col1Color || '#dc2626';
-    ctx.font = `800 ${16 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.font = getCanvasFont(16 * (width / 1080), '800', false, preferredFontFamily);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText(banner.twoColumns.col1Title, contentPadX, contentStartY);
 
-    // Col 1 Text
-    ctx.font = `700 ${14 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.font = getCanvasFont(14 * (width / 1080), '700', false, 'Be Vietnam Pro');
     drawTextWithHighlights(
       ctx,
       banner.twoColumns.col1Text,
-      'BÔNG HỒNG THÉP',
+      banner.headline.highlightWords || '',
       '#09090b',
-      '#dc2626',
+      banner.headline.highlightColor || '#dc2626',
       contentPadX,
       contentStartY + 24 * (width / 1080),
       colWidth,
-      20 * (width / 1080)
+      20 * (width / 1080),
+      banner.headline.highlightStyle || 'color'
     );
 
-    // Col 2 Title
     ctx.fillStyle = banner.twoColumns.col2Color || '#dc2626';
-    ctx.font = `800 ${16 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.font = getCanvasFont(16 * (width / 1080), '800', false, preferredFontFamily);
     ctx.fillText(banner.twoColumns.col2Title, col2X, contentStartY);
 
-    // Col 2 Text
-    ctx.font = `700 ${14 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.font = getCanvasFont(14 * (width / 1080), '700', false, 'Be Vietnam Pro');
     drawTextWithHighlights(
       ctx,
       banner.twoColumns.col2Text,
-      'BÔNG HỒNG THÉP',
+      banner.headline.highlightWords || '',
       '#09090b',
-      '#dc2626',
+      banner.headline.highlightColor || '#dc2626',
       col2X,
       contentStartY + 24 * (width / 1080),
       colWidth,
-      20 * (width / 1080)
+      20 * (width / 1080),
+      banner.headline.highlightStyle || 'color'
     );
   } else {
-    // Standard Single Headline with highlighted keywords
     const headlineFontSize = banner.headline.fontSize * (width / 1080);
-    ctx.font = `800 ${headlineFontSize}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.font = getCanvasFont(headlineFontSize, '800', false, preferredFontFamily);
     ctx.textBaseline = 'top';
+
+    const textToDraw =
+      banner.headline.textTransform === 'none'
+        ? banner.headline.text
+        : banner.headline.text.toUpperCase();
 
     drawTextWithHighlights(
       ctx,
-      banner.headline.text,
+      textToDraw,
       banner.headline.highlightWords || '',
       banner.headline.color,
       banner.headline.highlightColor,
       contentPadX,
       contentStartY,
       usableWidth,
-      headlineFontSize * 1.35
+      headlineFontSize * 1.35,
+      banner.headline.highlightStyle || 'color'
     );
   }
 
-  // 6. Bottom Right Meta Bar (Logo 28 + Hotline + Email / Page)
+  // 6. Bottom Right Meta Bar (Logo + Hotline + Email/Address)
   if (banner.footerMeta) {
     const metaY = height - Math.max(24, bannerHeight * 0.16);
     const metaX = width - contentPadX;
@@ -363,12 +484,11 @@ export function drawFooterBanner(
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = banner.footerMeta.color || themeColor;
-    ctx.font = `700 ${12 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.font = getCanvasFont(12 * (width / 1080), '700', false, 'Be Vietnam Pro');
 
-    const contactStr = `☎ ${banner.footerMeta.hotline}  ✉ ${banner.footerMeta.emailOrPage}`;
+    const contactStr = `☎ ${banner.footerMeta.hotline}   📍 ${banner.footerMeta.emailOrPage}`;
     ctx.fillText(contactStr, metaX, metaY);
 
-    // Mini circle badge on right
     const miniR = 12 * (width / 1080);
     const miniTextWidth = ctx.measureText(contactStr).width;
     const miniCircleX = metaX - miniTextWidth - miniR * 2.2;
@@ -379,19 +499,18 @@ export function drawFooterBanner(
     ctx.fill();
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = `900 ${miniR * 1.1}px 'Syne', sans-serif`;
+    ctx.font = getCanvasFont(miniR * 1.1, '900', false, 'Montserrat');
     ctx.textAlign = 'center';
-    ctx.fillText(banner.brandLogo.symbolText || '28', miniCircleX, metaY);
+    ctx.fillText(banner.brandLogo.symbolText || '37', miniCircleX, metaY);
     ctx.restore();
   }
 
-  // Photo Credit tag if specified (e.g. ẢNH: HOÀI BẢO)
   if (banner.quoteBadge && banner.quoteBadge.creditText) {
     ctx.save();
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = `600 ${11 * (width / 1080)}px 'JetBrains Mono', monospace`;
+    ctx.font = getCanvasFont(11 * (width / 1080), '600', false, 'JetBrains Mono');
     ctx.fillText(banner.quoteBadge.creditText, width - contentPadX, bannerY - 20);
     ctx.restore();
   }
@@ -408,6 +527,9 @@ export async function renderFullCollage(
   doodleStrokes: DoodleStroke[],
   renderWidth = 1080
 ): Promise<void> {
+  // CRITICAL: Force-preload all Vietnamese web fonts before rasterizing onto canvas
+  await ensureVietnameseFontsLoaded();
+
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
@@ -548,15 +670,10 @@ export async function renderFullCollage(
 
   // 4. Commercial / News Footer Banner
   if (template.hasFooterBanner || settings.footerBanner.enabled) {
-    drawFooterBanner(ctx, width, height, settings.footerBanner);
+    await drawFooterBanner(ctx, width, height, settings.footerBanner);
   }
 
-  // 5. Light Leaks
-  if (settings.lightLeak !== 'none') {
-    // Light leak
-  }
-
-  // 6. Freestyle Layers
+  // 5. Freestyle Layers (supporting user-specified Vietnamese fonts & styles)
   for (const layer of freestyleLayers) {
     ctx.save();
     const lx = (layer.x / 100) * width;
@@ -571,9 +688,25 @@ export async function renderFullCollage(
 
     if (layer.type === 'text' && layer.textData) {
       const td = layer.textData;
-      ctx.font = `${td.fontWeight} ${td.isItalic ? 'italic' : ''} ${td.fontSize * (width / 1080)}px ${td.fontFamily}`;
+      const targetSize = td.fontSize * (width / 1080);
+      ctx.font = getCanvasFont(targetSize, td.fontWeight, td.isItalic, td.fontFamily);
       ctx.textAlign = td.textAlign;
       ctx.textBaseline = 'middle';
+
+      if (td.hasBgBox) {
+        const textWidth = ctx.measureText(td.text).width;
+        ctx.fillStyle = td.bgBoxColor || 'rgba(0,0,0,0.7)';
+        ctx.beginPath();
+        ctx.roundRect(-textWidth / 2 - 8, -targetSize * 0.7, textWidth + 16, targetSize * 1.4, 6);
+        ctx.fill();
+      }
+
+      if (td.hasShadow) {
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetY = 2;
+      }
+
       ctx.fillStyle = td.color;
       ctx.fillText(td.text, 0, 0);
     }

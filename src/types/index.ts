@@ -133,6 +133,9 @@ export interface FooterBannerConfig {
     highlightColor: string; // e.g. "#dc2626" (red) or "#facc15" (yellow)
     fontSize: number;
     color: string;
+    fontFamily?: string;
+    highlightStyle?: 'color' | 'box';
+    textTransform?: 'uppercase' | 'none';
   };
 
   // 2 Columns comparison mode (như ảnh 2 bác sĩ)

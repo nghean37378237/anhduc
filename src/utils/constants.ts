@@ -35,47 +35,50 @@ export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
   enabled: true,
   heightPercent: 32, // 32% bottom banner height
   styleType: 'theanh28-news',
-  backgroundColor: '#f1f5f9', // Clean light news background as seen in images 1 & 2
-  pattern: 'none',
+  backgroundColor: '#facc15', // Màu vàng rực rỡ chủ đạo theo yêu cầu của bạn!
+  pattern: 'grid-dots', // Họa tiết vân lưới chấm bi như mẫu gốc
 
   brandLogo: {
     enabled: true,
     logoType: 'symbol',
-    symbolText: '28',
-    badgeText: 'NEWS',
-    themeColor: '#059669', // Emerald green as seen in the uploaded images!
+    symbolText: '37',
+    badgeText: 'CAR',
+    themeColor: '#ea580c', // Cam đỏ thể thao nổi bật trên nền vàng
     position: 'divider-left',
   },
 
   headline: {
-    text: 'TRÊN SÂN CỎ LÀ NHỮNG CUỘC ĐUA KHÔNG KHOAN NHƯỢNG. NHƯNG NGOÀI ĐỜI, MESSI VÀ RONALDO VẪN LUÔN TÔN TRỌNG ĐỐI THỦ LỚN NHẤT CỦA MÌNH',
-    highlightWords: 'CUỘC ĐUA, VẪN LUÔN TÔN TRỌNG',
-    highlightColor: '#dc2626', // Red highlight as seen in sample 1!
+    text: 'HỖ TRỢ TRẢ GÓP 70% · DUYỆT HỒ SƠ NHANH · LÃI SUẤT THẤP',
+    highlightWords: 'TRẢ GÓP 70%, LÃI SUẤT THẤP',
+    highlightColor: '#dc2626', // Chữ bôi đỏ nổi bật sắc nét
     fontSize: 22,
     color: '#09090b',
+    fontFamily: 'Montserrat',
+    highlightStyle: 'color',
+    textTransform: 'uppercase',
   },
 
   twoColumns: {
     enabled: false,
-    col1Title: 'BS. CKII TRẦN THỊ MAI LINH',
-    col1Text: '“BÔNG HỒNG THÉP” NGÀNH PHẪU THUẬT THẦN KINH, BỆNH VIỆN CHỢ RẪY, LÀ BÁC SĨ NỮ DUY NHẤT CÓ THỂ PHẪU THUẬT SỌ N.Ã.O TRÊN TOÀN KHU VỰC PHÍA NAM',
+    col1Title: 'XE ĐẸP TUYỂN CHỌN',
+    col1Text: 'CAM KẾT KHÔNG ĐÂM ĐỤNG, KHÔNG THỦY KÍCH, BẢO HÀNH CHÍNH HÃNG 12 THÁNG',
     col1Color: '#dc2626',
-    col2Title: 'THS.BS TRẦN HOÀI LINH',
-    col2Text: '“BÔNG HỒNG THÉP” HIẾM HOI TẠI TRUNG TÂM CẤP CỨU A9 BỆNH VIỆN BẠCH MAI, HỒI SỨC CẤP CỨU LÀ CHUYÊN NGÀNH KHẮC NGHIỆT NHẤT CỦA Y KHOA',
+    col2Title: 'HỖ TRỢ VAY NGÂN HÀNG',
+    col2Text: 'THỦ TỤC ĐƠN GIẢN TRONG 24H, GIAO XE TẬN NHÀ TOÀN QUỐC',
     col2Color: '#dc2626',
   },
 
   quoteBadge: {
     enabled: false,
     symbol: '“ ”',
-    bgColor: '#facc15',
-    creditText: 'ẢNH: HOÀI BẢO',
+    bgColor: '#ea580c',
+    creditText: '37CAR AUTO',
   },
 
   footerMeta: {
-    hotline: '0983 663 092',
-    emailOrPage: '28.hotline@gmail.com',
-    color: '#059669',
+    hotline: '0987 361 234',
+    emailOrPage: 'Số 82 Đại Lộ Lê Nin',
+    color: '#7c2d12',
   },
 };
 

@@ -18,7 +18,7 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
   const [photoCountFilter, setPhotoCountFilter] = useState<number | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  const categories = ['all', 'Banner Bán Hàng', 'Cơ Bản', 'Tạp Chí', 'Phim Ảnh', 'Bento'];
+  const categories = ['all', 'Tin Tức Báo Chí', 'Banner Bán Hàng', 'Cơ Bản', 'Tạp Chí', 'Phim Ảnh', 'Bento'];
 
   const filteredTemplates = GRID_TEMPLATES.filter((t) => {
     if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;

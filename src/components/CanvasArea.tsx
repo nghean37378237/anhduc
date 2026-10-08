@@ -170,7 +170,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     return { backgroundColor: settings.backgroundColor };
   };
 
-  // Helper to render headline words with red/custom highlights
+  // Helper to render headline words with red/yellow/custom highlights and box styles
   const renderHighlightedHeadline = () => {
     const rawText = banner.headline.text;
     const highlightPhrases = (banner.headline.highlightWords || '')
@@ -178,26 +178,51 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
       .map((w) => w.trim().toUpperCase())
       .filter(Boolean);
 
+    const headlineFont = banner.headline.fontFamily ? `"${banner.headline.fontFamily}", sans-serif` : 'inherit';
+
     if (highlightPhrases.length === 0) {
       return (
-        <span style={{ color: banner.headline.color }}>
+        <span style={{ color: banner.headline.color, fontFamily: headlineFont }}>
           {rawText}
         </span>
       );
     }
 
     const words = rawText.split(' ');
+    const isBoxStyle = banner.headline.highlightStyle === 'box';
+
     return words.map((w, idx) => {
       const cleanUpper = w.replace(/^[“"']|[”"',.?!:;]$/g, '').toUpperCase();
       const isMatch = highlightPhrases.some(
         (phrase) => phrase.includes(cleanUpper) || cleanUpper.includes(phrase)
       );
 
+      if (isMatch && isBoxStyle) {
+        const isLight =
+          banner.headline.highlightColor === '#facc15' ||
+          banner.headline.highlightColor === '#eab308' ||
+          banner.headline.highlightColor === '#ffffff';
+        return (
+          <span
+            key={idx}
+            style={{
+              backgroundColor: banner.headline.highlightColor,
+              color: isLight ? '#09090b' : '#ffffff',
+              fontFamily: headlineFont,
+            }}
+            className="px-1.5 py-0.5 mx-0.5 rounded-sm font-black shadow-xs inline-block"
+          >
+            {w}
+          </span>
+        );
+      }
+
       return (
         <span
           key={idx}
           style={{
             color: isMatch ? banner.headline.highlightColor : banner.headline.color,
+            fontFamily: headlineFont,
           }}
           className={isMatch ? 'font-black' : ''}
         >
@@ -433,6 +458,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   <div
                     style={{
                       fontSize: `clamp(13px, 2.2vw, ${banner.headline.fontSize}px)`,
+                      fontFamily: banner.headline.fontFamily
+                        ? `"${banner.headline.fontFamily}", 'Be Vietnam Pro', sans-serif`
+                        : undefined,
                     }}
                     className="font-black tracking-tight leading-snug uppercase text-left font-display"
                   >

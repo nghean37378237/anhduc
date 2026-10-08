@@ -41,42 +41,57 @@ export const TypographyPanel: React.FC<TypographyPanelProps> = ({
   const isEditingSelected = selectedLayer && selectedLayer.type === 'text' && selectedLayer.textData;
 
   const fontOptions = [
-    { label: 'Syne (Đậm chất Tạp chí Hiện đại)', value: "'Syne', sans-serif" },
-    { label: 'Playfair Display (Thơ mộng & Cổ điển)', value: "'Playfair Display', serif" },
-    { label: 'Plus Jakarta Sans (Hiện đại & Tinh gọn)', value: "'Plus Jakarta Sans', sans-serif" },
+    { label: 'Be Vietnam Pro (Chuẩn Tiếng Việt, không lỗi dấu)', value: "'Be Vietnam Pro', sans-serif" },
+    { label: 'Montserrat (Đậm nét, phong cách tin tức & tạp chí)', value: "'Montserrat', sans-serif" },
+    { label: 'Plus Jakarta Sans (Hiện đại & Tinh gọn cao cấp)', value: "'Plus Jakarta Sans', sans-serif" },
+    { label: 'Lora (Thơ mộng & Cổ điển có chân)', value: "'Lora', serif" },
     { label: 'JetBrains Mono (Máy ảnh Film & Kỹ thuật)', value: "'JetBrains Mono', monospace" },
   ];
 
   const presetTypographyStyles = [
     {
-      name: 'Tiêu Đề Tạp Chí',
-      text: 'EDITORIAL · SUMMER ISSUE',
-      font: "'Syne', sans-serif",
+      name: '⭐ Chữ Vàng Showroom',
+      text: 'SIÊU XE ĐẸP · GIẢM GIÁ 70%',
+      font: "'Montserrat', sans-serif",
       size: 26,
-      spacing: 4,
+      spacing: 2,
       italic: false,
       box: true,
-      boxColor: 'rgba(0,0,0,0.8)',
+      boxColor: '#09090b',
+      textColor: '#facc15',
+    },
+    {
+      name: 'Tiêu Đề Tạp Chí',
+      text: 'EDITORIAL · PHONG CÁCH MÙA HÈ',
+      font: "'Montserrat', sans-serif",
+      size: 26,
+      spacing: 3,
+      italic: false,
+      box: true,
+      boxColor: 'rgba(0,0,0,0.85)',
+      textColor: '#ffffff',
     },
     {
       name: 'Thơ Lãng Mạn',
       text: 'Những ngày nắng vàng ấm áp dịu dàng',
-      font: "'Playfair Display', serif",
+      font: "'Lora', serif",
       size: 24,
       spacing: 1,
       italic: true,
       box: false,
       boxColor: 'transparent',
+      textColor: '#fef08a',
     },
     {
       name: 'Timestamp Máy Phim',
-      text: '‘98 10 24 · TOKYO STREETS',
+      text: '‘98 10 24 · NẮNG VÀNG HÀ NỘI',
       font: "'JetBrains Mono', monospace",
       size: 18,
       spacing: 3,
       italic: false,
       box: true,
       boxColor: 'rgba(15,23,42,0.9)',
+      textColor: '#facc15',
     },
   ];
 
@@ -88,6 +103,7 @@ export const TypographyPanel: React.FC<TypographyPanelProps> = ({
     setIsItalic(p.italic);
     setHasBgBox(p.box);
     if (p.boxColor) setBgBoxColor(p.boxColor);
+    if (p.textColor) setTextColor(p.textColor);
   };
 
   const handleCreate = () => {
