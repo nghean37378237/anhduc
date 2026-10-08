@@ -31,6 +31,7 @@ import { AiAssistantModal } from './components/AiAssistantModal';
 import { ImagePickerModal } from './components/ImagePickerModal';
 
 export default function App() {
+  const [appTheme, setAppTheme] = useState<'light' | 'dark'>('light'); // Chế độ nền sáng, dịu mắt theo yêu cầu người dùng
   const [samples, setSamples] = useState<SamplePhoto[]>([]);
   // Default to user's requested template: 1 Photo Top + Footer Banner (or 2/3 photos)
   const [currentTemplate, setCurrentTemplate] = useState<GridTemplate>(GRID_TEMPLATES[0]); // banner-1-photo
@@ -420,7 +421,13 @@ export default function App() {
     : null;
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-neutral-950 text-neutral-100 font-sans">
+    <div
+      className={`flex flex-col h-screen w-screen overflow-hidden font-sans transition-colors duration-200 ${
+        appTheme === 'light'
+          ? 'bg-slate-50 text-slate-800'
+          : 'bg-neutral-950 text-neutral-100'
+      }`}
+    >
       {/* Top Navbar */}
       <TopNavbar
         activeTab={activeTab}
@@ -432,6 +439,8 @@ export default function App() {
           setTargetSlotForPicker(selectedSlotId);
           setIsImagePickerOpen(true);
         }}
+        theme={appTheme}
+        onToggleTheme={() => setAppTheme((t) => (t === 'light' ? 'dark' : 'light'))}
       />
 
       {/* Aspect Ratio & Photo Count Ribbon (1:1, 4:5, 3:4 Priority) */}
@@ -440,6 +449,7 @@ export default function App() {
         onChangeRatio={(ratio) => setSettings((s) => ({ ...s, aspectRatio: ratio }))}
         currentPhotoCount={currentTemplate.photoCount}
         onSwitchPhotoCount={handleSwitchPhotoCount}
+        theme={appTheme}
       />
 
       {/* Main Studio Workspace: Canvas Stage + Right Sidebar Tools */}
@@ -462,16 +472,24 @@ export default function App() {
           onReplaceImageTrigger={handleOpenPickerForSlot}
           onOpenDetailedAdjust={() => setActiveTab('adjust')}
           onOpenBannerCustomizer={() => setActiveTab('banner')}
+          theme={appTheme}
         />
 
         {/* Right Sidebar Tool Panel */}
-        <aside className="w-80 md:w-96 bg-neutral-900 border-l border-neutral-800 flex flex-col shrink-0 overflow-y-auto z-20">
+        <aside
+          className={`w-80 md:w-96 flex flex-col shrink-0 overflow-y-auto z-20 transition-colors duration-200 ${
+            appTheme === 'light'
+              ? 'bg-white border-l border-slate-200/90 text-slate-800'
+              : 'bg-neutral-900 border-l border-neutral-800 text-neutral-100'
+          }`}
+        >
           {activeTab === 'banner' && (
             <BannerCustomizerPanel
               banner={settings.footerBanner}
               onUpdateBanner={handleUpdateBanner}
               onSwitchPhotoCount={handleSwitchPhotoCount}
               currentPhotoCount={currentTemplate.photoCount}
+              theme={appTheme}
             />
           )}
 
@@ -481,6 +499,7 @@ export default function App() {
               onSelectTemplate={handleSelectTemplate}
               settings={settings}
               onUpdateSettings={(up) => setSettings((s) => ({ ...s, ...up }))}
+              theme={appTheme}
             />
           )}
 
@@ -491,6 +510,7 @@ export default function App() {
               onApplyFilterToAll={handleApplyFilterToAll}
               settings={settings}
               onUpdateSettings={(up) => setSettings((s) => ({ ...s, ...up }))}
+              theme={appTheme}
             />
           )}
 
@@ -516,6 +536,7 @@ export default function App() {
               onAddTextLayer={handleAddTextLayer}
               selectedLayer={activeSelectedLayer}
               onUpdateLayer={handleUpdateLayer}
+              theme={appTheme}
             />
           )}
 
@@ -525,13 +546,15 @@ export default function App() {
 
           {activeTab === 'ai' && (
             <div className="p-6 text-center space-y-4">
-              <h3 className="text-sm font-bold text-white">AI Caption Studio</h3>
-              <p className="text-xs text-neutral-400">
+              <h3 className={`text-sm font-bold ${appTheme === 'light' ? 'text-slate-900' : 'text-white'}`}>
+                AI Caption Studio
+              </h3>
+              <p className={`text-xs ${appTheme === 'light' ? 'text-slate-600' : 'text-neutral-400'}`}>
                 Sử dụng AI để tự động tạo caption hấp dẫn, lời quảng cáo chốt sale hoặc câu nói nghệ thuật để gắn lên ảnh.
               </p>
               <button
                 onClick={() => setIsAiModalOpen(true)}
-                className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-semibold rounded-xl text-xs transition-colors"
+                className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-semibold rounded-xl text-xs transition-colors shadow-sm"
               >
                 Mở Trợ Lý AI
               </button>

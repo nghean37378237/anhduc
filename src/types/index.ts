@@ -103,10 +103,10 @@ export type TextureType = 'none' | 'paper' | 'grain' | 'grid' | 'linen' | 'marbl
 export type LightLeakType = 'none' | 'golden' | 'rainbow' | 'sunset' | 'cyan';
 
 export type BannerStyleType =
-  | 'theanh28-news' // Chuẩn tin tức mạng xã hội Theanh28 / Beatvn / Kenh14
-  | 'two-columns'   // 2 cột so sánh như ảnh 2 bác sĩ
-  | 'dark-quote'    // Nền tối với quote "" và credit góc phải như ảnh xăng
-  | 'showroom';     // Banner vàng rực Showroom ô tô
+  | 'social-news'
+  | 'two-columns'
+  | 'dark-quote'
+  | 'showroom';
 
 export interface FooterBannerConfig {
   enabled: boolean;

@@ -1,13 +1,9 @@
 import React, { useRef } from 'react';
 import { FooterBannerConfig, BannerStyleType } from '../types';
 import {
-  Type,
   Upload,
   Sparkles,
-  Check,
   MousePointerClick,
-  Palette,
-  Layers,
   Image as ImageIcon,
   Flame,
   Layout,
@@ -21,6 +17,7 @@ interface BannerCustomizerPanelProps {
   onUpdateBanner: (updated: Partial<FooterBannerConfig>) => void;
   onSwitchPhotoCount: (count: 1 | 2 | 3) => void;
   currentPhotoCount: number;
+  theme?: 'light' | 'dark';
 }
 
 export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
@@ -28,7 +25,9 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
   onUpdateBanner,
   onSwitchPhotoCount,
   currentPhotoCount,
+  theme = 'light',
 }) => {
+  const isLight = theme === 'light';
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Background colors with Yellow as the #1 Dominant Theme
@@ -40,7 +39,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       badge: '#ea580c',
       isPrimary: true,
     },
-    { name: 'Xanh Theanh28', color: '#059669', text: '#ffffff', badge: '#059669' },
+    { name: 'Xanh Lá Tươi Mát', color: '#059669', text: '#ffffff', badge: '#059669' },
     { name: 'Đỏ Tin Nóng', color: '#dc2626', text: '#ffffff', badge: '#dc2626' },
     { name: 'Đen Sang Trọng', color: '#09090b', text: '#ffffff', badge: '#ea580c' },
     { name: 'Trắng Tinh Tế', color: '#ffffff', text: '#09090b', badge: '#059669' },
@@ -72,7 +71,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       badge: 'NGHỆ AN',
       color: '#ea580c',
       bg: '#facc15', // User's requested primary signature yellow!
-      style: 'theanh28-news' as BannerStyleType,
+      style: 'social-news' as BannerStyleType,
       headline: 'HỖ TRỢ TRẢ GÓP 70% · DUYỆT HỒ SƠ NHANH · LÃI SUẤT THẤP',
       highlights: 'TRẢ GÓP 70%, LÃI SUẤT THẤP',
       highlightColor: '#dc2626',
@@ -90,7 +89,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       badge: 'AUTO',
       color: '#b45309',
       bg: '#facc15',
-      style: 'theanh28-news' as BannerStyleType,
+      style: 'social-news' as BannerStyleType,
       headline: 'XE LƯỚT CHÍNH HÃNG · CAM KẾT KHÔNG ĐÂM ĐỤNG · GIAO XE TẬN NHÀ',
       highlights: 'XE LƯỚT CHÍNH HÃNG, GIAO XE TẬN NHÀ',
       highlightColor: '#dc2626',
@@ -102,12 +101,12 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       quote: false,
     },
     {
-      name: 'Mẫu 3: Theanh28 Thể Thao (Messi & Ronaldo)',
-      symbol: '28',
-      badge: 'NEWS',
+      name: 'Mẫu 3: Bản Tin Thể Thao & Đời Sống',
+      symbol: '24H',
+      badge: 'SPORT',
       color: '#059669',
       bg: '#f1f5f9',
-      style: 'theanh28-news' as BannerStyleType,
+      style: 'social-news' as BannerStyleType,
       headline:
         'TRÊN SÂN CỎ LÀ NHỮNG CUỘC ĐUA KHÔNG KHOAN NHƯỢNG. NHƯNG NGOÀI ĐỜI, MESSI VÀ RONALDO VẪN LUÔN TÔN TRỌNG ĐỐI THỦ LỚN NHẤT CỦA MÌNH',
       highlights: 'CUỘC ĐUA, VẪN LUÔN TÔN TRỌNG',
@@ -120,13 +119,13 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       quote: false,
     },
     {
-      name: 'Mẫu 4: So Sánh 2 Cột (2 Bác Sĩ Nữ)',
-      symbol: '28',
-      badge: 'NEWS',
-      color: '#059669',
+      name: 'Mẫu 4: So Sánh 2 Cột (2 Bác Sĩ / 2 Xe)',
+      symbol: '37',
+      badge: 'CAR',
+      color: '#0284c7',
       bg: '#ffffff',
       style: 'two-columns' as BannerStyleType,
-      headline: 'HAI NỮ BÁC SĨ TÀI NĂNG',
+      headline: 'BÔNG HỒNG THÉP CỦA NGÀNH Y HỌC VIỆT NAM',
       highlights: 'BÔNG HỒNG THÉP',
       highlightColor: '#dc2626',
       highlightStyle: 'color' as 'color' | 'box',
@@ -138,7 +137,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
     },
     {
       name: 'Mẫu 5: Nền Đen Mờ Quote (Chữ Chọn Màu Vàng Rực)',
-      symbol: '28',
+      symbol: '24H',
       badge: 'NEWS',
       color: '#facc15',
       bg: '#09090b',
@@ -198,13 +197,12 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        const result = ev.target?.result as string;
-        if (result) {
+        if (ev.target?.result) {
           onUpdateBanner({
             brandLogo: {
               ...banner.brandLogo,
               logoType: 'image',
-              customImageUrl: result,
+              customImageUrl: ev.target.result as string,
             },
           });
         }
@@ -213,29 +211,28 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
     }
   };
 
-  // Helper for 1-click word highlighting toggle
-  const headlineWords = banner.headline.text
-    .normalize('NFC')
-    .split(' ')
+  // Words breakdown for interactive 1-click highlighting
+  const headlineWords = (banner.headline.text || '')
+    .trim()
+    .split(/\s+/)
     .filter(Boolean);
 
   const currentHighlightsList = (banner.headline.highlightWords || '')
-    .normalize('NFC')
     .split(',')
     .map((w) => w.trim().toUpperCase())
     .filter(Boolean);
 
   const toggleWordHighlight = (word: string) => {
-    const cleanWordUpper = word.replace(/^[“"']|[”"',.?!:;]$/g, '').toUpperCase();
-    if (!cleanWordUpper) return;
+    const cleanWord = word.replace(/^[“"']|[”"',.?!:;]$/g, '').trim().toUpperCase();
+    if (!cleanWord) return;
 
-    let nextList: string[];
-    if (currentHighlightsList.some((w) => w.includes(cleanWordUpper) || cleanWordUpper.includes(w))) {
-      // Remove word
-      nextList = currentHighlightsList.filter((w) => !w.includes(cleanWordUpper) && !cleanWordUpper.includes(w));
+    let nextList = [...currentHighlightsList];
+    const exists = nextList.some((w) => w.includes(cleanWord) || cleanWord.includes(w));
+
+    if (exists) {
+      nextList = nextList.filter((w) => !w.includes(cleanWord) && !cleanWord.includes(w));
     } else {
-      // Add word
-      nextList = [...currentHighlightsList, cleanWordUpper];
+      nextList.push(cleanWord);
     }
 
     onUpdateBanner({
@@ -246,24 +243,36 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
     });
   };
 
-  const isYellowBackground = banner.backgroundColor.toLowerCase() === '#facc15' || banner.backgroundColor.toLowerCase() === '#eab308';
+  const isYellowBackground =
+    banner.backgroundColor.toLowerCase() === '#facc15' ||
+    banner.backgroundColor.toLowerCase() === '#eab308';
 
   return (
-    <div className="p-4 space-y-6">
+    <div className={`p-4 space-y-6 ${isLight ? 'text-slate-800' : 'text-neutral-100'}`}>
       {/* Header with Yellow Dominant Theme Callout */}
-      <div className="bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-transparent p-3.5 rounded-2xl border border-amber-400/40">
+      <div
+        className={`p-3.5 rounded-2xl border transition-colors ${
+          isLight
+            ? 'bg-amber-50/90 border-amber-300 text-slate-800 shadow-2xs'
+            : 'bg-gradient-to-r from-amber-500/20 via-amber-400/10 to-transparent border-amber-400/40 text-neutral-100'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
-            <h3 className="text-sm font-bold text-amber-300 tracking-wide flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+            <h3
+              className={`text-sm font-bold tracking-wide flex items-center gap-1.5 ${
+                isLight ? 'text-amber-950' : 'text-amber-300'
+              }`}
+            >
               <span>Mẫu Ghép Ảnh Nền Vàng Chủ Đạo</span>
             </h3>
           </div>
-          <span className="text-[10px] font-mono bg-amber-400 text-black font-extrabold px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-mono bg-amber-400 text-black font-extrabold px-2 py-0.5 rounded-full shadow-2xs">
             ƯU TIÊN
           </span>
         </div>
-        <p className="text-xs text-neutral-300 mt-1">
+        <p className={`text-xs mt-1 ${isLight ? 'text-amber-900' : 'text-neutral-300'}`}>
           Phần trên ghép 1, 2 hoặc 3 ảnh (tỷ lệ 1:1, 4:5, 3:4). Phía dưới là banner viết chữ & logo góc tự điền theo ý bạn!
         </p>
 
@@ -294,13 +303,25 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       </div>
 
       {/* Quick Switcher for 1, 2, or 3 Photos on Top */}
-      <div className="p-3.5 bg-neutral-950 rounded-xl border border-neutral-800 space-y-2.5">
+      <div
+        className={`p-3.5 rounded-xl border space-y-2.5 transition-colors ${
+          isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs' : 'bg-neutral-950 border-neutral-800'
+        }`}
+      >
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
-            <Layout className="w-3.5 h-3.5 text-amber-400" />
+          <label
+            className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              isLight ? 'text-slate-800' : 'text-neutral-200'
+            }`}
+          >
+            <Layout className="w-3.5 h-3.5 text-amber-500" />
             <span>Phần Trên: Chọn 1, 2 hoặc 3 Ảnh</span>
           </label>
-          <span className="text-[10px] text-amber-400 font-mono font-semibold">
+          <span
+            className={`text-[10px] font-mono font-semibold ${
+              isLight ? 'text-amber-700' : 'text-amber-400'
+            }`}
+          >
             {currentPhotoCount} Ảnh đang chọn
           </span>
         </div>
@@ -311,6 +332,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
             className={`py-2 px-2 text-xs font-bold rounded-lg border transition-all text-center flex flex-col items-center justify-center gap-1 ${
               currentPhotoCount === 1
                 ? 'bg-amber-400 text-black border-amber-400 shadow-md ring-2 ring-amber-400/30'
+                : isLight
+                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
                 : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
             }`}
           >
@@ -325,6 +348,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
             className={`py-2 px-2 text-xs font-bold rounded-lg border transition-all text-center flex flex-col items-center justify-center gap-1 ${
               currentPhotoCount === 2
                 ? 'bg-amber-400 text-black border-amber-400 shadow-md ring-2 ring-amber-400/30'
+                : isLight
+                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
                 : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
             }`}
           >
@@ -340,6 +365,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
             className={`py-2 px-2 text-xs font-bold rounded-lg border transition-all text-center flex flex-col items-center justify-center gap-1 ${
               currentPhotoCount === 3
                 ? 'bg-amber-400 text-black border-amber-400 shadow-md ring-2 ring-amber-400/30'
+                : isLight
+                ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
                 : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
             }`}
           >
@@ -357,7 +384,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
 
       {/* Presets: Highlight User's Yellow Showroom as #1 */}
       <div className="space-y-2">
-        <label className="text-xs font-bold text-neutral-300 uppercase tracking-wider block">
+        <label
+          className={`text-xs font-bold uppercase tracking-wider block ${
+            isLight ? 'text-slate-700' : 'text-neutral-300'
+          }`}
+        >
           Chọn Nhanh Mẫu Mẫu Chữ & Logo Có Sẵn:
         </label>
         <div className="space-y-2">
@@ -367,19 +398,33 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
               onClick={() => handleApplyPreset(preset)}
               className={`w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between group ${
                 idx === 0
-                  ? 'bg-amber-400/20 border-amber-400/90 hover:bg-amber-400/30 ring-1 ring-amber-400'
+                  ? isLight
+                    ? 'bg-amber-50/90 border-amber-400 hover:bg-amber-100/90 ring-1 ring-amber-400 shadow-2xs'
+                    : 'bg-amber-400/20 border-amber-400/90 hover:bg-amber-400/30 ring-1 ring-amber-400'
+                  : isLight
+                  ? 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   : 'bg-neutral-900 border-neutral-800 hover:border-neutral-700'
               }`}
             >
               <div className="min-w-0 pr-2">
                 <div
                   className={`text-xs font-extrabold truncate ${
-                    idx === 0 ? 'text-amber-300' : 'text-white group-hover:text-amber-400'
+                    idx === 0
+                      ? isLight
+                        ? 'text-amber-900'
+                        : 'text-amber-300'
+                      : isLight
+                      ? 'text-slate-900 group-hover:text-amber-600'
+                      : 'text-white group-hover:text-amber-400'
                   }`}
                 >
                   {preset.name}
                 </div>
-                <div className="text-[10px] text-neutral-400 mt-1 truncate font-mono">
+                <div
+                  className={`text-[10px] mt-1 truncate font-mono ${
+                    isLight ? 'text-slate-500' : 'text-neutral-400'
+                  }`}
+                >
                   Logo [{preset.symbol} {preset.badge}] · Nền {preset.bg} · Font: {preset.fontFamily}
                 </div>
               </div>
@@ -387,6 +432,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                 className={`text-[10px] font-mono shrink-0 px-2 py-1 rounded-md ${
                   idx === 0
                     ? 'bg-amber-400 text-black font-extrabold shadow-sm'
+                    : isLight
+                    ? 'bg-slate-100 text-slate-700 group-hover:bg-amber-400 group-hover:text-black font-bold'
                     : 'bg-neutral-800 text-neutral-300 group-hover:bg-amber-400 group-hover:text-black font-bold'
                 }`}
               >
@@ -397,16 +444,24 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
         </div>
       </div>
 
-      <div className="h-px bg-neutral-800" />
+      <div className={`h-px ${isLight ? 'bg-slate-200' : 'bg-neutral-800'}`} />
 
       {/* 1. Corner Logo & Brand Badge Config */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider flex items-center gap-1.5">
-            <Flame className="w-3.5 h-3.5 text-amber-400" />
+          <label
+            className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              isLight ? 'text-slate-800' : 'text-neutral-200'
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5 text-amber-500" />
             <span>1. Tự Điền Logo & Nhãn Ở Góc</span>
           </label>
-          <label className="flex items-center gap-1.5 text-xs text-neutral-400 cursor-pointer">
+          <label
+            className={`flex items-center gap-1.5 text-xs cursor-pointer ${
+              isLight ? 'text-slate-600' : 'text-neutral-400'
+            }`}
+          >
             <input
               type="checkbox"
               checked={banner.brandLogo.enabled}
@@ -415,17 +470,27 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                   brandLogo: { ...banner.brandLogo, enabled: e.target.checked },
                 })
               }
-              className="rounded accent-amber-400 cursor-pointer"
+              className="rounded accent-amber-500 cursor-pointer"
             />
             <span>Hiển thị logo</span>
           </label>
         </div>
 
         {banner.brandLogo.enabled && (
-          <div className="p-3.5 bg-neutral-950 rounded-xl border border-neutral-800 space-y-3">
+          <div
+            className={`p-3.5 rounded-xl border space-y-3 ${
+              isLight ? 'bg-slate-50 border-slate-200 shadow-2xs' : 'bg-neutral-950 border-neutral-800'
+            }`}
+          >
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <span className="text-[11px] font-medium text-neutral-300">Chữ số / Ký hiệu trong vòng tròn:</span>
+                <span
+                  className={`text-[11px] font-medium ${
+                    isLight ? 'text-slate-600' : 'text-neutral-300'
+                  }`}
+                >
+                  Chữ số / Ký hiệu trong vòng tròn:
+                </span>
                 <input
                   type="text"
                   value={banner.brandLogo.symbolText}
@@ -434,13 +499,23 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                       brandLogo: { ...banner.brandLogo, symbolText: e.target.value },
                     })
                   }
-                  placeholder="37"
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-black text-center focus:outline-none focus:border-amber-400"
+                  placeholder="24H"
+                  className={`w-full rounded-lg px-2.5 py-1.5 text-xs font-black text-center focus:outline-none focus:border-amber-500 border ${
+                    isLight
+                      ? 'bg-white border-slate-300 text-slate-900'
+                      : 'bg-neutral-900 border-neutral-700 text-white'
+                  }`}
                 />
               </div>
 
               <div className="space-y-1">
-                <span className="text-[11px] font-medium text-neutral-300">Chữ nhãn thương hiệu (Bên cạnh):</span>
+                <span
+                  className={`text-[11px] font-medium ${
+                    isLight ? 'text-slate-600' : 'text-neutral-300'
+                  }`}
+                >
+                  Chữ nhãn thương hiệu (Bên cạnh):
+                </span>
                 <input
                   type="text"
                   value={banner.brandLogo.badgeText}
@@ -449,15 +524,25 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                       brandLogo: { ...banner.brandLogo, badgeText: e.target.value },
                     })
                   }
-                  placeholder="CAR"
-                  className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-black text-center focus:outline-none focus:border-amber-400"
+                  placeholder="NGHỆ AN"
+                  className={`w-full rounded-lg px-2.5 py-1.5 text-xs font-black text-center focus:outline-none focus:border-amber-500 border ${
+                    isLight
+                      ? 'bg-white border-slate-300 text-slate-900'
+                      : 'bg-neutral-900 border-neutral-700 text-white'
+                  }`}
                 />
               </div>
             </div>
 
             {/* Quick Suggestions for Logo & Badge */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
-              <span className="text-[10px] text-neutral-500 font-mono shrink-0">Gợi ý nhanh:</span>
+              <span
+                className={`text-[10px] font-mono shrink-0 ${
+                  isLight ? 'text-slate-500' : 'text-neutral-500'
+                }`}
+              >
+                Gợi ý nhanh:
+              </span>
               {[
                 { symbol: '24H', badge: 'NGHỆ AN', isSpecial: true },
                 { symbol: '37', badge: 'CAR' },
@@ -481,7 +566,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                     banner.brandLogo.symbolText === sug.symbol && banner.brandLogo.badgeText === sug.badge
                       ? 'bg-amber-400 text-black border-amber-400 shadow-xs ring-1 ring-amber-400/50'
                       : sug.isSpecial
-                      ? 'bg-amber-400/20 text-amber-300 border-amber-400/50 hover:bg-amber-400/30'
+                      ? isLight
+                        ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-200'
+                        : 'bg-amber-400/20 text-amber-300 border-amber-400/50 hover:bg-amber-400/30'
+                      : isLight
+                      ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
                       : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:text-white hover:bg-neutral-800'
                   }`}
                 >
@@ -491,10 +580,14 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
             </div>
 
             {/* Custom Logo Image Upload or Reset */}
-            <div className="p-2.5 bg-neutral-900/80 rounded-lg border border-neutral-800 flex items-center justify-between">
+            <div
+              className={`p-2.5 rounded-lg border flex items-center justify-between ${
+                isLight ? 'bg-white border-slate-200 shadow-2xs' : 'bg-neutral-900/80 border-neutral-800'
+              }`}
+            >
               <div className="flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-amber-400" />
-                <span className="text-xs text-neutral-300">
+                <ImageIcon className="w-4 h-4 text-amber-500" />
+                <span className={`text-xs ${isLight ? 'text-slate-700' : 'text-neutral-300'}`}>
                   {banner.brandLogo.customImageUrl ? 'Đã tải ảnh logo riêng' : 'Hoặc tải file ảnh logo riêng:'}
                 </span>
               </div>
@@ -506,14 +599,18 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                         brandLogo: { ...banner.brandLogo, customImageUrl: undefined },
                       })
                     }
-                    className="text-[10px] text-red-400 hover:underline"
+                    className="text-[10px] text-red-500 hover:underline"
                   >
                     Xóa ảnh
                   </button>
                 )}
                 <button
                   onClick={() => logoInputRef.current?.click()}
-                  className="flex items-center gap-1 text-[11px] bg-neutral-800 hover:bg-neutral-700 text-amber-400 px-2 py-1 rounded-md font-bold"
+                  className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-md font-bold transition-colors ${
+                    isLight
+                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900'
+                      : 'bg-neutral-800 hover:bg-neutral-700 text-amber-400'
+                  }`}
                 >
                   <Upload className="w-3 h-3" />
                   <span>{banner.brandLogo.customImageUrl ? 'Đổi ảnh logo' : 'Tải ảnh PNG/JPG'}</span>
@@ -530,7 +627,13 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
 
             {/* Color of Pill Badge */}
             <div className="space-y-1.5 pt-1">
-              <span className="text-[11px] text-neutral-400">Màu huy hiệu logo & vạch kẻ trên:</span>
+              <span
+                className={`text-[11px] ${
+                  isLight ? 'text-slate-600' : 'text-neutral-400'
+                }`}
+              >
+                Màu huy hiệu logo & vạch kẻ trên:
+              </span>
               <div className="flex items-center gap-2">
                 {['#ea580c', '#facc15', '#dc2626', '#09090b', '#059669', '#0284c7'].map((col) => (
                   <button
@@ -542,7 +645,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                     }
                     className={`w-6 h-6 rounded-full border transition-transform ${
                       banner.brandLogo.themeColor === col
-                        ? 'border-white scale-125 shadow-md ring-2 ring-white/50'
+                        ? 'border-white scale-125 shadow-md ring-2 ring-slate-400'
                         : 'border-transparent hover:scale-110'
                     }`}
                     style={{ backgroundColor: col }}
@@ -554,17 +657,23 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
         )}
       </div>
 
-      <div className="h-px bg-neutral-800" />
+      <div className={`h-px ${isLight ? 'bg-slate-200' : 'bg-neutral-800'}`} />
 
       {/* 2. Headline & Interactive Click-to-Highlight Feature */}
       <div className="space-y-3">
-        <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider block">
+        <label
+          className={`text-xs font-bold uppercase tracking-wider block ${
+            isLight ? 'text-slate-800' : 'text-neutral-200'
+          }`}
+        >
           2. Nội Dung Chữ & Chọn Từ Khóa Bôi Màu (Vàng / Đỏ)
         </label>
 
         {/* Text Input */}
         <div className="space-y-1">
-          <label className="text-[11px] text-neutral-400">Nhập câu tiêu đề bên dưới:</label>
+          <label className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+            Nhập câu tiêu đề bên dưới:
+          </label>
           <textarea
             rows={2}
             value={banner.headline.text}
@@ -574,17 +683,33 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
               })
             }
             placeholder="HỖ TRỢ TRẢ GÓP 70% · DUYỆT HỒ SƠ NHANH..."
-            className="w-full bg-neutral-950 border border-neutral-700 rounded-lg p-2.5 text-xs text-white font-bold leading-relaxed focus:outline-none focus:border-amber-400"
+            className={`w-full rounded-lg p-2.5 text-xs font-bold leading-relaxed focus:outline-none focus:border-amber-500 border ${
+              isLight
+                ? 'bg-white border-slate-300 text-slate-900'
+                : 'bg-neutral-950 border-neutral-700 text-white'
+            }`}
           />
         </div>
 
         {/* Text Alignment Controls (Căn trái, Căn giữa trang, Căn phải) */}
-        <div className="flex items-center justify-between p-2 bg-neutral-950 rounded-lg border border-neutral-800">
-          <span className="text-[11px] text-neutral-300 font-semibold flex items-center gap-1">
-            <AlignCenter className="w-3.5 h-3.5 text-amber-400" />
+        <div
+          className={`flex items-center justify-between p-2 rounded-lg border ${
+            isLight ? 'bg-slate-50 border-slate-200 shadow-2xs' : 'bg-neutral-950 border-neutral-800'
+          }`}
+        >
+          <span
+            className={`text-[11px] font-semibold flex items-center gap-1 ${
+              isLight ? 'text-slate-700' : 'text-neutral-300'
+            }`}
+          >
+            <AlignCenter className="w-3.5 h-3.5 text-amber-500" />
             <span>Căn lề trang:</span>
           </span>
-          <div className="flex items-center gap-1 bg-neutral-900 p-0.5 rounded-lg border border-neutral-700/60">
+          <div
+            className={`flex items-center gap-1 p-0.5 rounded-lg border ${
+              isLight ? 'bg-white border-slate-200' : 'bg-neutral-900 border-neutral-700/60'
+            }`}
+          >
             <button
               type="button"
               onClick={() =>
@@ -595,6 +720,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
               className={`px-2 py-1 text-xs rounded-md font-bold flex items-center gap-1 transition-all ${
                 banner.headline.textAlign === 'left'
                   ? 'bg-amber-400 text-black shadow-xs'
+                  : isLight
+                  ? 'text-slate-600 hover:text-slate-900'
                   : 'text-neutral-400 hover:text-white'
               }`}
               title="Căn lề trái"
@@ -613,6 +740,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
               className={`px-2.5 py-1 text-xs rounded-md font-bold flex items-center gap-1 transition-all ${
                 (banner.headline.textAlign || 'center') === 'center'
                   ? 'bg-amber-400 text-black shadow-xs ring-1 ring-amber-400/50'
+                  : isLight
+                  ? 'text-slate-600 hover:text-slate-900'
                   : 'text-neutral-400 hover:text-white'
               }`}
               title="Căn giữa trang (Khuyên dùng)"
@@ -631,6 +760,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
               className={`px-2 py-1 text-xs rounded-md font-bold flex items-center gap-1 transition-all ${
                 banner.headline.textAlign === 'right'
                   ? 'bg-amber-400 text-black shadow-xs'
+                  : isLight
+                  ? 'text-slate-600 hover:text-slate-900'
                   : 'text-neutral-400 hover:text-white'
               }`}
               title="Căn lề phải"
@@ -643,7 +774,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
 
         {/* Font Family Selector (100% Vietnamese tested) */}
         <div className="space-y-1">
-          <label className="text-[11px] text-neutral-400 flex items-center justify-between">
+          <label
+            className={`text-[11px] flex items-center justify-between ${
+              isLight ? 'text-slate-600' : 'text-neutral-400'
+            }`}
+          >
             <span>Font chữ chuẩn Tiếng Việt (Không bị lỗi dấu):</span>
           </label>
           <select
@@ -653,7 +788,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                 headline: { ...banner.headline, fontFamily: e.target.value },
               })
             }
-            className="w-full bg-neutral-900 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-semibold focus:outline-none focus:border-amber-400 cursor-pointer"
+            className={`w-full rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-amber-500 cursor-pointer border ${
+              isLight
+                ? 'bg-white border-slate-300 text-slate-900'
+                : 'bg-neutral-900 border-neutral-700 text-white'
+            }`}
           >
             {fontFamilies.map((f) => (
               <option key={f.id} value={f.id}>
@@ -663,10 +802,18 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
           </select>
         </div>
 
-        {/* 1-Click Interactive Word Selector (Bấm trực tiếp vào chữ để chọn bôi vàng/đỏ) */}
-        <div className="p-3 bg-neutral-950 rounded-xl border border-neutral-800 space-y-2.5">
+        {/* 1-Click Interactive Word Selector */}
+        <div
+          className={`p-3 rounded-xl border space-y-2.5 ${
+            isLight ? 'bg-slate-50 border-slate-200 shadow-2xs' : 'bg-neutral-950 border-neutral-800'
+          }`}
+        >
           <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-amber-400 flex items-center gap-1.5">
+            <span
+              className={`font-bold flex items-center gap-1.5 ${
+                isLight ? 'text-amber-800' : 'text-amber-400'
+              }`}
+            >
               <MousePointerClick className="w-3.5 h-3.5" />
               <span>Chữ lúc chọn (Bấm để bôi màu nổi bật):</span>
             </span>
@@ -676,14 +823,20 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                   headline: { ...banner.headline, highlightWords: '' },
                 })
               }
-              className="text-[10px] text-neutral-500 hover:text-white font-mono"
+              className={`text-[10px] font-mono hover:underline ${
+                isLight ? 'text-slate-500 hover:text-slate-800' : 'text-neutral-500 hover:text-white'
+              }`}
             >
               Xóa chọn
             </button>
           </div>
 
-          {/* Interactive Word Chips - Styled in user's dominant Yellow or active highlight color */}
-          <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-neutral-900 rounded-lg border border-neutral-800">
+          {/* Interactive Word Chips */}
+          <div
+            className={`flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1.5 rounded-lg border ${
+              isLight ? 'bg-white border-slate-200' : 'bg-neutral-900 border-neutral-800'
+            }`}
+          >
             {headlineWords.map((word, i) => {
               const cleanUpper = word.replace(/^[“"']|[”"',.?!:;]$/g, '').toUpperCase();
               const isSelected = currentHighlightsList.some(
@@ -697,6 +850,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                   className={`px-2.5 py-1 text-xs rounded-md transition-all font-bold ${
                     isSelected
                       ? 'bg-amber-400 text-black shadow-md ring-2 ring-amber-300 scale-105'
+                      : isLight
+                      ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border border-slate-200'
                       : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
                   }`}
                   title="Nhấn để đổi trạng thái bôi màu"
@@ -709,10 +864,17 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
 
           {/* Color for Highlighted Words */}
           <div className="flex items-center justify-between pt-1">
-            <span className="text-[11px] text-neutral-300 font-medium">Màu chữ khi được chọn:</span>
+            <span
+              className={`text-[11px] font-medium ${
+                isLight ? 'text-slate-600' : 'text-neutral-300'
+              }`}
+            >
+              Màu chữ khi được chọn:
+            </span>
             <div className="flex items-center gap-1.5">
               {highlightColors.map((hc) => {
-                const isCurrent = banner.headline.highlightColor.toLowerCase() === hc.color.toLowerCase();
+                const isCurrent =
+                  banner.headline.highlightColor.toLowerCase() === hc.color.toLowerCase();
                 return (
                   <button
                     key={hc.color}
@@ -722,7 +884,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                       })
                     }
                     className={`w-5 h-5 rounded-md border transition-transform ${
-                      isCurrent ? 'border-white scale-125 shadow-sm ring-2 ring-white/60' : 'border-neutral-700'
+                      isCurrent
+                        ? 'border-white scale-125 shadow-sm ring-2 ring-slate-400'
+                        : isLight
+                        ? 'border-slate-300 hover:scale-110'
+                        : 'border-neutral-700 hover:scale-110'
                     }`}
                     style={{ backgroundColor: hc.color }}
                     title={hc.name}
@@ -734,7 +900,13 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
 
           {/* Style of Highlight: Text Color or Box Badge */}
           <div className="flex items-center justify-between pt-1">
-            <span className="text-[11px] text-neutral-300 font-medium">Kiểu bôi màu:</span>
+            <span
+              className={`text-[11px] font-medium ${
+                isLight ? 'text-slate-600' : 'text-neutral-300'
+              }`}
+            >
+              Kiểu bôi màu:
+            </span>
             <div className="flex items-center gap-1">
               <button
                 onClick={() =>
@@ -742,9 +914,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                     headline: { ...banner.headline, highlightStyle: 'color' },
                   })
                 }
-                className={`px-2 py-0.5 text-[11px] rounded font-bold ${
+                className={`px-2 py-0.5 text-[11px] rounded font-bold transition-colors ${
                   (banner.headline.highlightStyle || 'color') === 'color'
                     ? 'bg-amber-400 text-black'
+                    : isLight
+                    ? 'bg-slate-100 text-slate-600 hover:text-slate-900'
                     : 'bg-neutral-800 text-neutral-400 hover:text-white'
                 }`}
               >
@@ -756,9 +930,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                     headline: { ...banner.headline, highlightStyle: 'box' },
                   })
                 }
-                className={`px-2 py-0.5 text-[11px] rounded font-bold ${
+                className={`px-2 py-0.5 text-[11px] rounded font-bold transition-colors ${
                   banner.headline.highlightStyle === 'box'
                     ? 'bg-amber-400 text-black'
+                    : isLight
+                    ? 'bg-slate-100 text-slate-600 hover:text-slate-900'
                     : 'bg-neutral-800 text-neutral-400 hover:text-white'
                 }`}
               >
@@ -771,8 +947,12 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
         {/* Font size slider */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-neutral-400">Cỡ chữ tiêu đề</span>
-            <span className="font-mono text-neutral-300 tabular-nums">
+            <span className={isLight ? 'text-slate-600' : 'text-neutral-400'}>Cỡ chữ tiêu đề</span>
+            <span
+              className={`font-mono tabular-nums font-bold ${
+                isLight ? 'text-slate-800' : 'text-neutral-300'
+              }`}
+            >
               {banner.headline.fontSize}px
             </span>
           </div>
@@ -786,16 +966,22 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                 headline: { ...banner.headline, fontSize: Number(e.target.value) },
               })
             }
-            className="w-full accent-amber-400 bg-neutral-800 h-1.5 rounded-lg appearance-none cursor-pointer"
+            className={`w-full accent-amber-500 h-1.5 rounded-lg appearance-none cursor-pointer ${
+              isLight ? 'bg-slate-200' : 'bg-neutral-800'
+            }`}
           />
         </div>
       </div>
 
-      <div className="h-px bg-neutral-800" />
+      <div className={`h-px ${isLight ? 'bg-slate-200' : 'bg-neutral-800'}`} />
 
       {/* 3. Màu Nền Banner (Màu Vàng Chủ Đạo) */}
       <div className="space-y-3">
-        <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider block">
+        <label
+          className={`text-xs font-bold uppercase tracking-wider block ${
+            isLight ? 'text-slate-800' : 'text-neutral-200'
+          }`}
+        >
           3. Màu Nền Banner Phía Dưới
         </label>
 
@@ -818,7 +1004,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                 }
                 className={`p-2.5 rounded-xl text-center border transition-all text-xs font-medium ${
                   isSelected
-                    ? 'bg-neutral-800 border-amber-400 ring-2 ring-amber-400 text-amber-300'
+                    ? isLight
+                      ? 'bg-amber-50 border-amber-400 ring-2 ring-amber-400 text-amber-950 font-bold shadow-2xs'
+                      : 'bg-neutral-800 border-amber-400 ring-2 ring-amber-400 text-amber-300 font-bold'
+                    : isLight
+                    ? 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                     : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-700'
                 }`}
               >
@@ -835,17 +1025,23 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
         </div>
       </div>
 
-      <div className="h-px bg-neutral-800" />
+      <div className={`h-px ${isLight ? 'bg-slate-200' : 'bg-neutral-800'}`} />
 
       {/* 4. Hotline & Địa chỉ góc dưới phải */}
       <div className="space-y-3">
-        <label className="text-xs font-bold text-neutral-200 uppercase tracking-wider block">
+        <label
+          className={`text-xs font-bold uppercase tracking-wider block ${
+            isLight ? 'text-slate-800' : 'text-neutral-200'
+          }`}
+        >
           4. Thông Tin Liên Hệ Góc Dưới Phải
         </label>
 
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <span className="text-[11px] text-neutral-400">Số Hotline / Zalo:</span>
+            <span className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+              Số Hotline / Zalo:
+            </span>
             <input
               type="text"
               value={banner.footerMeta.hotline}
@@ -855,12 +1051,18 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                 })
               }
               placeholder="0987 361 234"
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+              className={`w-full rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-amber-500 border ${
+                isLight
+                  ? 'bg-white border-slate-300 text-slate-900'
+                  : 'bg-neutral-950 border-neutral-700 text-white'
+              }`}
             />
           </div>
 
           <div className="space-y-1">
-            <span className="text-[11px] text-neutral-400">Địa chỉ / Showroom / Email:</span>
+            <span className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+              Địa chỉ / Showroom / Email:
+            </span>
             <input
               type="text"
               value={banner.footerMeta.emailOrPage}
@@ -870,7 +1072,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                 })
               }
               placeholder="Số 82 Đại Lộ Lê Nin"
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+              className={`w-full rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:border-amber-500 border ${
+                isLight
+                  ? 'bg-white border-slate-300 text-slate-900'
+                  : 'bg-neutral-950 border-neutral-700 text-white'
+              }`}
             />
           </div>
         </div>

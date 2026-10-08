@@ -27,6 +27,7 @@ interface CanvasAreaProps {
   onReplaceImageTrigger: (slotId: string) => void;
   onOpenDetailedAdjust: () => void;
   onOpenBannerCustomizer?: () => void;
+  theme?: 'light' | 'dark';
 }
 
 export const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -45,7 +46,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
   onReplaceImageTrigger,
   onOpenDetailedAdjust,
   onOpenBannerCustomizer,
+  theme = 'light',
 }) => {
+  const isLight = theme === 'light';
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [dragOverSlotId, setDragOverSlotId] = useState<string | null>(null);
@@ -236,7 +239,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
 
   return (
     <div
-      className="relative flex-1 bg-neutral-950 flex flex-col items-center justify-center p-3 md:p-6 overflow-hidden select-none"
+      className={`relative flex-1 flex flex-col items-center justify-center p-3 md:p-6 overflow-hidden select-none transition-colors duration-200 ${
+        isLight ? 'studio-stage-light' : 'studio-stage-dark'
+      }`}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onClick={() => {
@@ -253,7 +258,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
       >
         <div
           ref={containerRef}
-          className="relative shadow-2xl overflow-hidden transition-all duration-300"
+          className={`relative overflow-hidden transition-all duration-300 ${
+            isLight ? 'shadow-2xl shadow-slate-400/40' : 'shadow-2xl shadow-black/80'
+          }`}
           style={{
             ...getCanvasBackgroundStyle(),
             width: aspectRatioValue >= 1 ? 'min(760px, 86vw)' : `min(${760 * aspectRatioValue}px, 86vw)`,
@@ -303,7 +310,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   }}
                   className={`group relative overflow-hidden cursor-pointer transition-all duration-150 ${
                     isSelected
-                      ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-neutral-900 shadow-xl z-20'
+                      ? `ring-2 ring-amber-400 ring-offset-2 ${
+                          isLight ? 'ring-offset-white' : 'ring-offset-neutral-900'
+                        } shadow-xl z-20`
                       : 'hover:ring-1 hover:ring-amber-400/60 z-10'
                   } ${isDragTarget ? 'ring-4 ring-amber-400 bg-amber-400/20' : ''}`}
                 >
@@ -342,12 +351,28 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   ) : (
                     <div
                       onClick={() => onReplaceImageTrigger(slotDef.id)}
-                      className="w-full h-full flex flex-col items-center justify-center gap-2 bg-neutral-900/60 hover:bg-neutral-800/80 border border-dashed border-neutral-700 hover:border-amber-400/80 transition-colors p-4 text-center"
+                      className={`w-full h-full flex flex-col items-center justify-center gap-2 border border-dashed transition-colors p-4 text-center ${
+                        isLight
+                          ? 'bg-slate-100/90 hover:bg-slate-200/90 border-slate-300 hover:border-amber-500'
+                          : 'bg-neutral-900/60 hover:bg-neutral-800/80 border-neutral-700 hover:border-amber-400/80'
+                      }`}
                     >
-                      <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform ${
+                          isLight
+                            ? 'bg-white shadow-2xs text-amber-600 font-bold'
+                            : 'bg-neutral-800 text-amber-400 font-bold'
+                        }`}
+                      >
                         +
                       </div>
-                      <span className="text-xs text-neutral-400 font-medium">Thêm ảnh</span>
+                      <span
+                        className={`text-xs font-medium ${
+                          isLight ? 'text-slate-600' : 'text-neutral-400'
+                        }`}
+                      >
+                        Thêm ảnh
+                      </span>
                     </div>
                   )}
                 </div>
@@ -368,7 +393,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
               }}
               className="relative w-full overflow-visible flex flex-col justify-between p-3 sm:p-5 select-none cursor-pointer group transition-all"
             >
-              {/* Green/Themed Accent Line with Dot at the top border (Chuẩn Theanh28) */}
+              {/* Themed Accent Line with Dot at the top border */}
               <div
                 style={{ backgroundColor: themeColor }}
                 className="absolute -top-1 left-0 right-0 h-1 z-10 flex items-center justify-center"
@@ -585,36 +610,61 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
           onReplaceImage={() => onReplaceImageTrigger(activeSlot.id)}
           onClose={() => onSelectSlot(null)}
           onOpenDetailedAdjust={onOpenDetailedAdjust}
+          theme={theme}
         />
       )}
 
       {/* Floating Canvas Zoom Controls */}
-      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-neutral-900/90 backdrop-blur-md border border-neutral-800 p-1.5 rounded-xl shadow-xl">
+      <div
+        className={`absolute bottom-4 right-4 z-20 flex items-center gap-1 backdrop-blur-md p-1.5 rounded-xl shadow-xl transition-colors border ${
+          isLight
+            ? 'bg-white/95 border-slate-200 text-slate-700 shadow-slate-300/40'
+            : 'bg-neutral-900/90 border-neutral-800 text-neutral-300 shadow-black/80'
+        }`}
+      >
         <button
           onClick={() => setZoomLevel((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))}
-          className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
+          className={`p-1.5 rounded-lg transition-colors ${
+            isLight
+              ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+          }`}
           title="Thu nhỏ"
         >
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
 
-        <span className="text-xs font-mono text-neutral-300 w-12 text-center tabular-nums">
+        <span
+          className={`text-xs font-mono w-12 text-center tabular-nums font-bold ${
+            isLight ? 'text-slate-800' : 'text-neutral-300'
+          }`}
+        >
           {Math.round(zoomLevel * 100)}%
         </span>
 
         <button
           onClick={() => setZoomLevel((z) => Math.min(2, +(z + 0.15).toFixed(2)))}
-          className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
+          className={`p-1.5 rounded-lg transition-colors ${
+            isLight
+              ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+          }`}
           title="Phóng to"
         >
           <ZoomIn className="w-3.5 h-3.5" />
         </button>
 
-        <div className="w-px h-4 bg-neutral-800 mx-0.5" />
+        <div
+          className={`w-px h-4 mx-0.5 ${isLight ? 'bg-slate-200' : 'bg-neutral-800'}`}
+        />
 
         <button
           onClick={() => setZoomLevel(1)}
-          className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
+          className={`p-1.5 rounded-lg transition-colors ${
+            isLight
+              ? 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              : 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+          }`}
           title="Mặc định 100%"
         >
           <Maximize2 className="w-3.5 h-3.5" />

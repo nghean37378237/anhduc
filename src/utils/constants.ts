@@ -34,7 +34,7 @@ export const DEFAULT_ADJUSTMENTS: PhotoAdjustments = {
 export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
   enabled: true,
   heightPercent: 32, // 32% bottom banner height
-  styleType: 'theanh28-news',
+  styleType: 'social-news',
   backgroundColor: '#facc15', // Màu vàng rực rỡ chủ đạo theo yêu cầu của bạn!
   pattern: 'grid-dots', // Họa tiết vân lưới chấm bi như mẫu gốc
 
