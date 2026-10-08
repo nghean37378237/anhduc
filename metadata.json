@@ -1,0 +1,6 @@
+{
+  "name": "Kroma Studio - Ghép Ảnh & Sáng Tạo Nghệ Thuật",
+  "description": "Bộ công cụ ghép ảnh sáng tạo và chỉnh sửa ảnh chuyên nghiệp với đa dạng template layout, hiệu ứng film vintage, glitch, bộ lọc nghệ thuật, sticker và xuất ảnh sắc nét.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
