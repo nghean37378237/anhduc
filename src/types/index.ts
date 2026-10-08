@@ -6,6 +6,7 @@ export interface AspectRatioOption {
   sublabel: string;
   width: number;
   height: number;
+  isPriority?: boolean;
 }
 
 export type CollageMode = 'grid' | 'freestyle';
@@ -79,10 +80,11 @@ export interface GridTemplateSlot {
 export interface GridTemplate {
   id: string;
   name: string;
-  category: 'Cơ Bản' | 'Tạp Chí' | 'Phim Ảnh' | 'Bento' | 'Đặc Biệt';
+  category: 'Banner Bán Hàng' | 'Cơ Bản' | 'Tạp Chí' | 'Phim Ảnh' | 'Bento' | 'Đặc Biệt';
   photoCount: number;
   slots: GridTemplateSlot[];
   description: string;
+  hasFooterBanner?: boolean;
 }
 
 export type FrameStyle =
@@ -99,6 +101,45 @@ export type FrameStyle =
 export type BackgroundType = 'solid' | 'gradient' | 'texture';
 export type TextureType = 'none' | 'paper' | 'grain' | 'grid' | 'linen' | 'marble' | 'dots';
 export type LightLeakType = 'none' | 'golden' | 'rainbow' | 'sunset' | 'cyan';
+
+export interface FooterBannerConfig {
+  enabled: boolean;
+  heightPercent: number; // e.g. 33 (33% from bottom)
+  backgroundColor: string; // default '#f59e0b' or '#eab308'
+  pattern: 'grid-dots' | 'solid' | 'diagonal-stripes' | 'mesh';
+  badge: {
+    enabled: boolean;
+    text: string;
+    bgColor: string;
+    textColor: string;
+  };
+  headline: {
+    text: string;
+    fontSize: number;
+    color: string;
+    fontWeight: string;
+  };
+  subheadline: {
+    text: string;
+    fontSize: number;
+    color: string;
+  };
+  details: {
+    text: string;
+    fontSize: number;
+    color: string;
+  };
+  hotline: {
+    text: string;
+    fontSize: number;
+    color: string;
+  };
+  address: {
+    text: string;
+    fontSize: number;
+    color: string;
+  };
+}
 
 export interface CanvasSettings {
   aspectRatio: AspectRatioId;
@@ -118,6 +159,7 @@ export interface CanvasSettings {
   globalGrain: number;
   globalVignette: number;
   globalFilter: FilterPresetId;
+  footerBanner: FooterBannerConfig;
 }
 
 export interface FreestyleLayer {

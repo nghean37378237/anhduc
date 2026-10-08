@@ -2,6 +2,7 @@ import {
   CanvasSettings,
   DoodleStroke,
   FilterPresetId,
+  FooterBannerConfig,
   FreestyleLayer,
   GridTemplate,
   PhotoAdjustments,
@@ -12,40 +13,32 @@ import { FILTER_PRESETS } from './constants';
 export function getAdjustmentsCss(adj: PhotoAdjustments): string {
   const parts: string[] = [];
 
-  // Brightness: 0 is 100%, -100 is 0%, +100 is 200%
   const b = 1 + adj.brightness / 100;
   if (adj.brightness !== 0) parts.push(`brightness(${b.toFixed(2)})`);
 
-  // Contrast: 0 is 100%, -100 is 0%, +100 is 200%
   const c = 1 + adj.contrast / 100;
   if (adj.contrast !== 0) parts.push(`contrast(${c.toFixed(2)})`);
 
-  // Saturation: 0 is 100%, -100 is 0% (grayscale), +100 is 200%
   const s = Math.max(0, 1 + adj.saturation / 100);
   if (adj.saturation !== 0) parts.push(`saturate(${s.toFixed(2)})`);
 
-  // Exposure: simulated as brightness boost
   if (adj.exposure !== 0) {
     const exp = 1 + adj.exposure / 120;
     parts.push(`brightness(${exp.toFixed(2)})`);
   }
 
-  // Hue rotate
   if (adj.hueRotate !== 0) {
     parts.push(`hue-rotate(${adj.hueRotate}deg)`);
   }
 
-  // Sepia
   if (adj.sepia !== 0) {
     parts.push(`sepia(${(adj.sepia / 100).toFixed(2)})`);
   }
 
-  // Blur
   if (adj.blur > 0) {
     parts.push(`blur(${adj.blur}px)`);
   }
 
-  // Invert
   if (adj.invert > 0) {
     parts.push(`invert(${(adj.invert / 100).toFixed(2)})`);
   }
@@ -164,36 +157,6 @@ export function drawLightLeak(
   ctx.restore();
 }
 
-export function drawChromaticAberration(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  amount: number
-) {
-  if (amount <= 0) return;
-  try {
-    const imgData = ctx.getImageData(0, 0, width, height);
-    const data = imgData.data;
-    const shift = Math.floor(amount);
-    const copy = new Uint8ClampedArray(data);
-
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const idx = (y * width + x) * 4;
-        // Shift Red channel to the right
-        const rIdx = (y * width + Math.min(width - 1, x + shift)) * 4;
-        // Shift Blue channel to the left
-        const bIdx = (y * width + Math.max(0, x - shift)) * 4;
-        data[idx] = copy[rIdx]; // Red
-        data[idx + 2] = copy[bIdx + 2]; // Blue
-      }
-    }
-    ctx.putImageData(imgData, 0, 0);
-  } catch (e) {
-    // Canvas tainted if cross-origin, silently skip
-  }
-}
-
 export function drawFilmSprockets(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -202,27 +165,21 @@ export function drawFilmSprockets(
   height: number
 ) {
   ctx.save();
-  // Film border black bars
   const stripWidth = Math.max(24, width * 0.08);
   ctx.fillStyle = '#09090b';
-  // Left border
   ctx.fillRect(x, y, stripWidth, height);
-  // Right border
   ctx.fillRect(x + width - stripWidth, y, stripWidth, height);
 
-  // Perforations
   const holeWidth = stripWidth * 0.55;
   const holeHeight = holeWidth * 1.3;
   const holeGap = holeHeight * 1.5;
 
   ctx.fillStyle = '#ffffff';
   for (let py = y + 15; py < y + height - holeHeight; py += holeGap) {
-    // Left sprocket
     ctx.beginPath();
     ctx.roundRect(x + (stripWidth - holeWidth) / 2, py, holeWidth, holeHeight, 3);
     ctx.fill();
 
-    // Right sprocket
     ctx.beginPath();
     ctx.roundRect(
       x + width - stripWidth + (stripWidth - holeWidth) / 2,
@@ -234,7 +191,6 @@ export function drawFilmSprockets(
     ctx.fill();
   }
 
-  // Kodak film imprint text
   ctx.fillStyle = '#f59e0b';
   ctx.font = `600 ${Math.max(9, stripWidth * 0.28)}px 'JetBrains Mono', monospace`;
   ctx.save();
@@ -243,6 +199,137 @@ export function drawFilmSprockets(
   ctx.textAlign = 'center';
   ctx.fillText('KODAK SAFETY FILM · 400TX', 0, 0);
   ctx.restore();
+
+  ctx.restore();
+}
+
+/**
+ * Draws the high-impact Commercial Footer Banner (phần dưới viết chữ như mẫu người dùng gửi)
+ */
+export function drawFooterBanner(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  banner: FooterBannerConfig
+) {
+  if (!banner.enabled) return;
+
+  const bannerHeight = (banner.heightPercent / 100) * height;
+  const bannerY = height - bannerHeight;
+
+  ctx.save();
+
+  // 1. Banner Background
+  ctx.fillStyle = banner.backgroundColor;
+  ctx.fillRect(0, bannerY, width, bannerHeight);
+
+  // 2. Pattern overlay (e.g. grid dots / subtle checkerboard as seen in the sample)
+  if (banner.pattern === 'grid-dots') {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    const dotGap = Math.max(8, width * 0.012);
+    for (let gx = 0; gx < width; gx += dotGap) {
+      for (let gy = bannerY; gy < height; gy += dotGap) {
+        ctx.fillRect(gx, gy, 1.5, 1.5);
+      }
+    }
+  } else if (banner.pattern === 'diagonal-stripes') {
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.04)';
+    ctx.lineWidth = 2;
+    for (let s = -bannerHeight; s < width; s += 16) {
+      ctx.beginPath();
+      ctx.moveTo(s, bannerY);
+      ctx.lineTo(s + bannerHeight, height);
+      ctx.stroke();
+    }
+  }
+
+  // 3. Top border highlight line
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.fillRect(0, bannerY, width, 2);
+
+  // 4. Ribbon / Badge at the top-left edge (like the orange badge in user image)
+  if (banner.badge.enabled && banner.badge.text) {
+    const badgeW = Math.min(width * 0.42, 380);
+    const badgeH = Math.max(38, bannerHeight * 0.24);
+    const badgeY = bannerY - badgeH * 0.45; // Overlaps the photo and banner border!
+
+    ctx.save();
+    // Drop shadow under the badge
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
+
+    // Slanted polygon shape
+    ctx.fillStyle = banner.badge.bgColor;
+    ctx.beginPath();
+    ctx.moveTo(0, badgeY);
+    ctx.lineTo(badgeW - 24, badgeY);
+    ctx.lineTo(badgeW, badgeY + badgeH);
+    ctx.lineTo(0, badgeY + badgeH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Subtle gloss stripe inside badge
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillRect(0, badgeY, badgeW - 24, badgeH * 0.28);
+
+    // Badge text
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = banner.badge.textColor;
+    ctx.font = `800 ${Math.max(14, badgeH * 0.45)}px 'Syne', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(banner.badge.text, (badgeW - 12) / 2, badgeY + badgeH / 2);
+    ctx.restore();
+  }
+
+  // 5. Text elements inside the banner
+  const contentPadX = width * 0.05;
+  let cursorY = bannerY + bannerHeight * 0.28;
+
+  // Headline
+  if (banner.headline.text) {
+    ctx.fillStyle = banner.headline.color;
+    ctx.font = `${banner.headline.fontWeight} ${banner.headline.fontSize * (width / 1080)}px 'Syne', sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(banner.headline.text, contentPadX, cursorY);
+    cursorY += banner.headline.fontSize * (width / 1080) * 1.25;
+  }
+
+  // Subheadline
+  if (banner.subheadline.text) {
+    ctx.fillStyle = banner.subheadline.color;
+    ctx.font = `700 ${banner.subheadline.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.fillText(banner.subheadline.text, contentPadX, cursorY);
+    cursorY += banner.subheadline.fontSize * (width / 1080) * 1.35;
+  }
+
+  // Details (specs / promises)
+  if (banner.details.text) {
+    ctx.fillStyle = banner.details.color;
+    ctx.font = `500 ${banner.details.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    const lines = banner.details.text.split('\n');
+    for (const line of lines) {
+      ctx.fillText(line, contentPadX, cursorY);
+      cursorY += banner.details.fontSize * (width / 1080) * 1.35;
+    }
+  }
+
+  // Bottom row: Hotline & Address with high contrast
+  const bottomRowY = height - Math.max(28, bannerHeight * 0.18);
+  if (banner.hotline.text) {
+    ctx.fillStyle = banner.hotline.color;
+    ctx.font = `800 ${banner.hotline.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.fillText(`☎ ${banner.hotline.text}`, contentPadX, bottomRowY);
+  }
+
+  if (banner.address.text) {
+    ctx.fillStyle = banner.address.color;
+    ctx.font = `600 ${banner.address.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.fillText(`📍 ${banner.address.text}`, width - contentPadX, bottomRowY);
+  }
 
   ctx.restore();
 }
@@ -259,7 +346,6 @@ export async function renderFullCollage(
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  // Determine aspect ratio dimensions
   const [ratioW, ratioH] = settings.aspectRatio.split(':').map(Number);
   const width = renderWidth;
   const height = Math.round((renderWidth * ratioH) / ratioW);
@@ -279,7 +365,7 @@ export async function renderFullCollage(
     ctx.fillRect(0, 0, width, height);
   }
 
-  // 2. Draw Background Texture if selected
+  // 2. Background Texture
   if (settings.backgroundTexture === 'grid') {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     ctx.lineWidth = 1;
@@ -302,14 +388,13 @@ export async function renderFullCollage(
     drawFilmGrain(ctx, width, height, 32);
   }
 
-  // 3. Render Photo Slots (Grid)
+  // 3. Render Photo Slots
   const outerPad = (settings.outerPadding / 100) * (width * 0.15);
   const gap = (settings.innerGap / 100) * (width * 0.08);
 
   const usableW = width - outerPad * 2;
   const usableH = height - outerPad * 2;
 
-  // Helper to load image
   const loadImage = (url: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -324,18 +409,14 @@ export async function renderFullCollage(
     const slotData = slots[slotDef.id];
     if (!slotData || !slotData.imageUrl) continue;
 
-    // Slot bounding box
     const slotX = outerPad + (slotDef.x / 100) * usableW + gap / 2;
     const slotY = outerPad + (slotDef.y / 100) * usableH + gap / 2;
     const slotW = Math.max(1, (slotDef.width / 100) * usableW - gap);
     const slotH = Math.max(1, (slotDef.height / 100) * usableH - gap);
 
-    // Corner radius
     const radius = Math.min(settings.cellRadius, Math.min(slotW, slotH) / 2);
 
     ctx.save();
-
-    // Clip to rounded slot
     ctx.beginPath();
     ctx.roundRect(slotX, slotY, slotW, slotH, radius);
     ctx.clip();
@@ -343,31 +424,24 @@ export async function renderFullCollage(
     try {
       const img = await loadImage(slotData.imageUrl);
 
-      // Apply CSS Filters
       const filterStr = getFullSlotFilter(slotData);
       if (filterStr && filterStr !== 'none') {
         ctx.filter = filterStr;
       }
 
-      // Compute object-fit: cover with zoom, pan, rotation, flip
       ctx.save();
       ctx.translate(slotX + slotW / 2, slotY + slotH / 2);
-
-      // Flips
       ctx.scale(slotData.flipH ? -1 : 1, slotData.flipV ? -1 : 1);
 
-      // Rotation
       if (slotData.rotation !== 0) {
         ctx.rotate((slotData.rotation * Math.PI) / 180);
       }
 
-      // Zoom & Pan
       const zoom = slotData.zoom || 1;
       const panPxX = ((slotData.panX || 0) / 100) * (slotW / 2);
       const panPxY = ((slotData.panY || 0) / 100) * (slotH / 2);
       ctx.translate(panPxX, panPxY);
 
-      // Cover scaling
       const imgAspect = img.width / img.height;
       const slotAspect = slotW / slotH;
       let drawW = slotW * zoom;
@@ -382,10 +456,8 @@ export async function renderFullCollage(
       ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
       ctx.restore();
 
-      // Reset filter for overlays
       ctx.filter = 'none';
 
-      // Vignette on slot
       const totalVignette =
         (slotData.adjustments.vignette || 0) + (settings.globalVignette || 0);
       if (totalVignette > 0) {
@@ -395,7 +467,6 @@ export async function renderFullCollage(
         ctx.restore();
       }
 
-      // Grain on slot
       const totalGrain = (slotData.adjustments.grain || 0) + (settings.globalGrain || 0);
       if (totalGrain > 0) {
         ctx.save();
@@ -403,18 +474,12 @@ export async function renderFullCollage(
         drawFilmGrain(ctx, slotW, slotH, totalGrain);
         ctx.restore();
       }
-
-      // Chromatic Aberration
-      if (slotData.adjustments.chromaticAberration > 0) {
-        drawChromaticAberration(ctx, width, height, slotData.adjustments.chromaticAberration);
-      }
     } catch (err) {
       console.warn('Could not load image for slot:', slotDef.id, err);
     }
 
     ctx.restore();
 
-    // Frame effects on slot
     if (settings.frameStyle === 'film35mm') {
       drawFilmSprockets(ctx, slotX, slotY, slotW, slotH);
     } else if (settings.frameStyle === 'minimal-hairline') {
@@ -426,17 +491,22 @@ export async function renderFullCollage(
     }
   }
 
-  // 4. Global Light Leaks
+  // 4. Draw Commercial Footer Banner if template or setting enabled
+  if (template.hasFooterBanner || settings.footerBanner.enabled) {
+    drawFooterBanner(ctx, width, height, settings.footerBanner);
+  }
+
+  // 5. Global Light Leaks
   if (settings.lightLeak !== 'none') {
     drawLightLeak(ctx, width, height, settings.lightLeak);
   }
 
-  // 5. Global Grain Overlay
+  // 6. Global Grain Overlay
   if (settings.globalGrain > 0) {
     drawFilmGrain(ctx, width, height, settings.globalGrain);
   }
 
-  // 6. Draw Freestyle Layers (Stickers, Text, Floating Photos)
+  // 7. Draw Freestyle Layers
   for (const layer of freestyleLayers) {
     ctx.save();
     const lx = (layer.x / 100) * width;
@@ -478,7 +548,6 @@ export async function renderFullCollage(
       ctx.fillStyle = td.color;
       ctx.fillText(td.text, 0, 0);
     } else if (layer.type === 'sticker' && layer.stickerData) {
-      // Draw sticker SVG
       const img = new Image();
       const svg = layer.stickerData.svgContent;
       const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
@@ -498,14 +567,14 @@ export async function renderFullCollage(
           img.src = url;
         });
       } catch (e) {
-        // SVG render error fallback
+        // Fallback
       }
     }
 
     ctx.restore();
   }
 
-  // 7. Draw Doodle Freehand strokes
+  // 8. Draw Doodle strokes
   for (const stroke of doodleStrokes) {
     if (stroke.points.length < 2) continue;
     ctx.save();

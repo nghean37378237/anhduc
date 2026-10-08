@@ -16,10 +16,14 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
   onUpdateSettings,
 }) => {
   const [photoCountFilter, setPhotoCountFilter] = useState<number | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
+  const categories = ['all', 'Banner Bán Hàng', 'Cơ Bản', 'Tạp Chí', 'Phim Ảnh', 'Bento'];
 
   const filteredTemplates = GRID_TEMPLATES.filter((t) => {
-    if (photoCountFilter === 'all') return true;
-    return t.photoCount === photoCountFilter;
+    if (categoryFilter !== 'all' && t.category !== categoryFilter) return false;
+    if (photoCountFilter !== 'all' && t.photoCount !== photoCountFilter) return false;
+    return true;
   });
 
   const photoCountButtons: (number | 'all')[] = ['all', 1, 2, 3, 4, 5, 6];
@@ -38,12 +42,35 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
           Mẫu Bố Cục Ghép Ảnh
         </h3>
         <p className="text-xs text-neutral-400 mt-0.5">
-          Chọn template lưới phù hợp với số lượng ảnh của bạn
+          Mẫu có banner viết chữ phía dưới (1-3 ảnh) và các dạng lưới đa năng
         </p>
       </div>
 
-      {/* Filter by Photo Count (Interactive segmented buttons) */}
-      <div className="space-y-2">
+      {/* Category Pills */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-neutral-400">Thể loại:</label>
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+          {categories.map((cat) => {
+            const isActive = categoryFilter === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
+                  isActive
+                    ? 'bg-amber-400 text-black font-semibold'
+                    : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
+                }`}
+              >
+                {cat === 'all' ? 'Tất cả' : cat}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Filter by Photo Count */}
+      <div className="space-y-1.5">
         <label className="text-xs font-medium text-neutral-400">Số lượng ảnh:</label>
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar p-1 bg-neutral-900 rounded-lg border border-neutral-800">
           {photoCountButtons.map((count) => {
@@ -69,7 +96,7 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs text-neutral-400">
           <span>Danh sách mẫu ({filteredTemplates.length}):</span>
-          <span className="font-mono text-[11px] text-amber-400">
+          <span className="font-mono text-[11px] text-amber-400 truncate max-w-[150px]">
             {currentTemplate.name}
           </span>
         </div>
@@ -77,6 +104,8 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
         <div className="grid grid-cols-2 gap-2.5 max-h-[300px] overflow-y-auto pr-1">
           {filteredTemplates.map((tmpl) => {
             const isSelected = currentTemplate.id === tmpl.id;
+            const isBannerType = tmpl.hasFooterBanner;
+
             return (
               <button
                 key={tmpl.id}
@@ -88,30 +117,49 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
                 }`}
               >
                 {/* Visual miniature wireframe representation */}
-                <div className="w-full aspect-4/3 bg-neutral-950 rounded-lg p-1.5 relative overflow-hidden border border-neutral-800">
-                  {tmpl.slots.map((s) => (
-                    <div
-                      key={s.id}
-                      style={{
-                        position: 'absolute',
-                        left: `${s.x}%`,
-                        top: `${s.y}%`,
-                        width: `calc(${s.width}% - 2px)`,
-                        height: `calc(${s.height}% - 2px)`,
-                      }}
-                      className={`rounded-xs transition-colors ${
-                        isSelected ? 'bg-amber-400/30 border border-amber-400/70' : 'bg-neutral-800 border border-neutral-700/60'
-                      }`}
-                    />
-                  ))}
+                <div className="w-full aspect-4/3 bg-neutral-950 rounded-lg p-1 relative overflow-hidden border border-neutral-800 flex flex-col">
+                  {/* Photo area */}
+                  <div
+                    className="relative w-full"
+                    style={{ height: isBannerType ? '68%' : '100%' }}
+                  >
+                    {tmpl.slots.map((s) => (
+                      <div
+                        key={s.id}
+                        style={{
+                          position: 'absolute',
+                          left: `${s.x}%`,
+                          top: `${isBannerType ? (s.y / 68) * 100 : s.y}%`,
+                          width: `calc(${s.width}% - 1px)`,
+                          height: `calc(${isBannerType ? (s.height / 68) * 100 : s.height}% - 1px)`,
+                        }}
+                        className={`rounded-xs transition-colors ${
+                          isSelected
+                            ? 'bg-amber-400/40 border border-amber-400/80'
+                            : 'bg-neutral-800 border border-neutral-700/60'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Banner wireframe bottom */}
+                  {isBannerType && (
+                    <div className="w-full h-[32%] bg-amber-400/90 flex flex-col justify-center px-1 border-t border-black/20">
+                      <div className="w-3/4 h-1.5 bg-black/80 rounded-xs mb-0.5" />
+                      <div className="w-1/2 h-1 bg-black/40 rounded-xs" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="min-w-0">
-                  <div className="text-xs font-medium text-white truncate">
+                  <div className="text-xs font-semibold text-white truncate">
                     {tmpl.name}
                   </div>
-                  <div className="text-[10px] text-neutral-500 font-mono mt-0.5">
-                    {tmpl.photoCount} ảnh · {tmpl.category}
+                  <div className="text-[10px] text-neutral-400 font-mono mt-0.5 flex items-center gap-1">
+                    <span>{tmpl.photoCount} ảnh</span>
+                    {isBannerType && (
+                      <span className="text-amber-400 font-bold">· Có banner</span>
+                    )}
                   </div>
                 </div>
               </button>
@@ -125,7 +173,7 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
       {/* Geometry Sliders: Spacing, Radius, Padding */}
       <div className="space-y-4">
         <h4 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-          Khoảng Cách & Viền Khung
+          Khoảng Cách & Bo Góc Ô Ảnh
         </h4>
 
         {/* Inner Gap */}
@@ -160,24 +208,6 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
             max={48}
             value={settings.cellRadius}
             onChange={(e) => onUpdateSettings({ cellRadius: Number(e.target.value) })}
-            className="w-full accent-amber-400 bg-neutral-800 h-1.5 rounded-lg appearance-none cursor-pointer"
-          />
-        </div>
-
-        {/* Outer Padding */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-neutral-400">Lề ngoài viền trang</span>
-            <span className="font-mono text-neutral-300 tabular-nums">
-              {settings.outerPadding}px
-            </span>
-          </div>
-          <input
-            type="range"
-            min={0}
-            max={48}
-            value={settings.outerPadding}
-            onChange={(e) => onUpdateSettings({ outerPadding: Number(e.target.value) })}
             className="w-full accent-amber-400 bg-neutral-800 h-1.5 rounded-lg appearance-none cursor-pointer"
           />
         </div>

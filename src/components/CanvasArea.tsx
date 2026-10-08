@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   CanvasSettings,
   DoodleStroke,
@@ -8,7 +8,7 @@ import {
 } from '../types';
 import { getFullSlotFilter } from '../utils/filterEngine';
 import { CellQuickEdit } from './CellQuickEdit';
-import { ZoomIn, ZoomOut, Maximize2, Trash2, Move } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Trash2, Move, Phone, MapPin, Edit3 } from 'lucide-react';
 
 interface CanvasAreaProps {
   settings: CanvasSettings;
@@ -26,6 +26,7 @@ interface CanvasAreaProps {
   onImageDropOnSlot: (slotId: string, file: File) => void;
   onReplaceImageTrigger: (slotId: string) => void;
   onOpenDetailedAdjust: () => void;
+  onOpenBannerCustomizer?: () => void;
 }
 
 export const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -43,6 +44,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
   onImageDropOnSlot,
   onReplaceImageTrigger,
   onOpenDetailedAdjust,
+  onOpenBannerCustomizer,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
@@ -69,6 +71,11 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
   // Calculate container aspect ratio dimensions
   const [ratioW, ratioH] = settings.aspectRatio.split(':').map(Number);
   const aspectRatioValue = ratioW / ratioH;
+
+  // Has bottom commercial banner?
+  const isBannerMode = template.hasFooterBanner || settings.footerBanner.enabled;
+  const bannerHeightPct = isBannerMode ? settings.footerBanner.heightPercent : 0;
+  const topPhotosHeightPct = isBannerMode ? 100 - bannerHeightPct : 100;
 
   // Handle slot panning
   const handleSlotMouseDown = (e: React.MouseEvent, slotId: string) => {
@@ -117,7 +124,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     setIsDraggingLayer(null);
   };
 
-  // Drag and Drop from File System
   const handleSlotDragOver = (e: React.DragEvent, slotId: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -142,7 +148,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     }
   };
 
-  // Layer drag start
   const handleLayerMouseDown = (e: React.MouseEvent, layerId: string) => {
     e.stopPropagation();
     onSelectLayer(layerId);
@@ -158,7 +163,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     };
   };
 
-  // Background style
   const getCanvasBackgroundStyle = () => {
     if (settings.backgroundType === 'gradient') {
       return {
@@ -172,7 +176,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
 
   return (
     <div
-      className="relative flex-1 bg-neutral-950 flex flex-col items-center justify-center p-4 md:p-8 overflow-hidden select-none"
+      className="relative flex-1 bg-neutral-950 flex flex-col items-center justify-center p-3 md:p-6 overflow-hidden select-none"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onClick={() => {
@@ -192,38 +196,16 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
           className="relative shadow-2xl overflow-hidden transition-all duration-300"
           style={{
             ...getCanvasBackgroundStyle(),
-            width: aspectRatioValue >= 1 ? 'min(820px, 86vw)' : `min(${820 * aspectRatioValue}px, 86vw)`,
+            width: aspectRatioValue >= 1 ? 'min(760px, 86vw)' : `min(${760 * aspectRatioValue}px, 86vw)`,
             aspectRatio: `${ratioW} / ${ratioH}`,
-            padding: `${settings.outerPadding * 0.4}px`,
+            padding: isBannerMode ? '0px' : `${settings.outerPadding * 0.4}px`,
           }}
         >
-          {/* Background Textures */}
-          {settings.backgroundTexture === 'grid' && (
-            <div
-              className="absolute inset-0 pointer-events-none opacity-20"
-              style={{
-                backgroundImage:
-                  'linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)',
-                backgroundSize: '24px 24px',
-              }}
-            />
-          )}
-
-          {settings.backgroundTexture === 'paper' && (
-            <div
-              className="absolute inset-0 pointer-events-none opacity-30 mix-blend-overlay"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0.4) 100%)',
-              }}
-            />
-          )}
-
-          {/* Grid Slots Container */}
+          {/* Top Photos Container */}
           <div
-            className="relative w-full h-full"
+            className="relative w-full"
             style={{
-              gap: `${settings.innerGap * 0.3}px`,
+              height: `${topPhotosHeightPct}%`,
             }}
           >
             {template.slots.map((slotDef) => {
@@ -231,7 +213,14 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
               const isSelected = selectedSlotId === slotDef.id;
               const isDragTarget = dragOverSlotId === slotDef.id;
 
-              const slotGapHalf = (settings.innerGap * 0.25);
+              // Scale slot coordinate within top area
+              const slotGapHalf = settings.innerGap * 0.2;
+              const adjustedHeight = isBannerMode
+                ? (slotDef.height / 68) * 100 // normalized within top area
+                : slotDef.height;
+              const adjustedY = isBannerMode
+                ? (slotDef.y / 68) * 100
+                : slotDef.y;
 
               return (
                 <div
@@ -248,10 +237,10 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   style={{
                     position: 'absolute',
                     left: `calc(${slotDef.x}% + ${slotGapHalf}px)`,
-                    top: `calc(${slotDef.y}% + ${slotGapHalf}px)`,
+                    top: `calc(${adjustedY}% + ${slotGapHalf}px)`,
                     width: `calc(${slotDef.width}% - ${slotGapHalf * 2}px)`,
-                    height: `calc(${slotDef.height}% - ${slotGapHalf * 2}px)`,
-                    borderRadius: `${settings.cellRadius * 0.4}px`,
+                    height: `calc(${adjustedHeight}% - ${slotGapHalf * 2}px)`,
+                    borderRadius: isBannerMode ? 0 : `${settings.cellRadius * 0.4}px`,
                   }}
                   className={`group relative overflow-hidden cursor-pointer transition-all duration-150 ${
                     isSelected
@@ -259,7 +248,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                       : 'hover:ring-1 hover:ring-amber-400/60 z-10'
                   } ${isDragTarget ? 'ring-4 ring-amber-400 bg-amber-400/20' : ''}`}
                 >
-                  {/* Photo Display */}
                   {slotData && slotData.imageUrl ? (
                     <div className="relative w-full h-full overflow-hidden bg-neutral-900">
                       <img
@@ -295,50 +283,21 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                         />
                       )}
 
-                      {/* Grain Overlay */}
-                      {((slotData.adjustments.grain || 0) + (settings.globalGrain || 0)) > 0 && (
-                        <div
-                          className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-50"
-                          style={{
-                            backgroundImage:
-                              'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-                          }}
-                        />
-                      )}
-
-                      {/* 35mm Film Sprockets Effect */}
-                      {settings.frameStyle === 'film35mm' && (
-                        <div className="absolute inset-0 pointer-events-none flex justify-between">
-                          <div className="w-4 bg-black/90 flex flex-col justify-around items-center py-2">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                              <div key={i} className="w-2.5 h-3.5 bg-white/90 rounded-xs" />
-                            ))}
-                          </div>
-                          <div className="w-4 bg-black/90 flex flex-col justify-around items-center py-2">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                              <div key={i} className="w-2.5 h-3.5 bg-white/90 rounded-xs" />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
                       {/* Hover Pan Indicator */}
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-xs text-[10px] text-white px-2 py-0.5 rounded-md flex items-center gap-1 font-mono pointer-events-none">
                         <Move className="w-3 h-3 text-amber-400" />
-                        <span>Kéo để căn chỉnh</span>
+                        <span>Kéo để căn ảnh</span>
                       </div>
                     </div>
                   ) : (
-                    /* Empty Slot State */
                     <div
                       onClick={() => onReplaceImageTrigger(slotDef.id)}
                       className="w-full h-full flex flex-col items-center justify-center gap-2 bg-neutral-900/60 hover:bg-neutral-800/80 border border-dashed border-neutral-700 hover:border-amber-400/80 transition-colors p-4 text-center"
                     >
-                      <div className="w-9 h-9 rounded-full bg-neutral-800 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                      <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
                         +
                       </div>
                       <span className="text-xs text-neutral-400 font-medium">Thêm ảnh vào đây</span>
-                      <span className="text-[10px] text-neutral-600 font-mono">hoặc kéo thả ảnh</span>
                     </div>
                   )}
                 </div>
@@ -346,38 +305,106 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
             })}
           </div>
 
-          {/* Global Light Leaks */}
-          {settings.lightLeak === 'golden' && (
+          {/* Bottom Commercial Banner (phần dưới viết chữ như mẫu người dùng gửi) */}
+          {isBannerMode && (
             <div
-              className="absolute inset-0 pointer-events-none mix-blend-screen opacity-70"
-              style={{
-                background:
-                  'radial-gradient(circle at 10% 10%, rgba(251, 146, 60, 0.6) 0%, rgba(245, 158, 11, 0.3) 40%, transparent 80%)',
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onOpenBannerCustomizer) onOpenBannerCustomizer();
               }}
-            />
+              style={{
+                height: `${bannerHeightPct}%`,
+                backgroundColor: settings.footerBanner.backgroundColor,
+              }}
+              className="relative w-full overflow-hidden flex flex-col justify-between p-3 sm:p-5 select-none cursor-pointer border-t border-black/10 group transition-all"
+            >
+              {/* Dot Grid Pattern Texture (y như mẫu ảnh 37Car của khách) */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-20"
+                style={{
+                  backgroundImage:
+                    'radial-gradient(circle, rgba(0,0,0,0.4) 1px, transparent 1px)',
+                  backgroundSize: '10px 10px',
+                }}
+              />
+
+              {/* Slanted Ribbon Badge tab sitting at the top left edge */}
+              {settings.footerBanner.badge.enabled && settings.footerBanner.badge.text && (
+                <div
+                  style={{
+                    backgroundColor: settings.footerBanner.badge.bgColor,
+                    color: settings.footerBanner.badge.textColor,
+                    clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 100%, 0 100%)',
+                  }}
+                  className="absolute -top-3 left-0 px-4 py-1.5 shadow-md flex items-center justify-center z-10"
+                >
+                  <span className="text-xs sm:text-sm font-black tracking-wider uppercase pr-2 font-display">
+                    {settings.footerBanner.badge.text}
+                  </span>
+                </div>
+              )}
+
+              {/* Top Text Content: Headline & Subheadline */}
+              <div className="relative z-10 pt-2 sm:pt-3">
+                <div
+                  style={{
+                    color: settings.footerBanner.headline.color,
+                  }}
+                  className="text-base sm:text-xl font-black tracking-tight leading-tight uppercase font-display"
+                >
+                  {settings.footerBanner.headline.text}
+                </div>
+
+                <div
+                  style={{
+                    color: settings.footerBanner.subheadline.color,
+                  }}
+                  className="text-xs sm:text-sm font-bold tracking-wide mt-0.5 leading-snug"
+                >
+                  {settings.footerBanner.subheadline.text}
+                </div>
+              </div>
+
+              {/* Details & Commitments Specs */}
+              {settings.footerBanner.details.text && (
+                <div
+                  style={{
+                    color: settings.footerBanner.details.color,
+                  }}
+                  className="relative z-10 text-[10px] sm:text-xs leading-relaxed my-1 whitespace-pre-wrap font-medium"
+                >
+                  {settings.footerBanner.details.text}
+                </div>
+              )}
+
+              {/* Bottom Row: Hotline & Address */}
+              <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-black/10 text-[10px] sm:text-xs font-semibold">
+                <div
+                  style={{ color: settings.footerBanner.hotline.color }}
+                  className="flex items-center gap-1 font-bold"
+                >
+                  <Phone className="w-3 h-3 fill-current" />
+                  <span>{settings.footerBanner.hotline.text}</span>
+                </div>
+
+                <div
+                  style={{ color: settings.footerBanner.address.color }}
+                  className="flex items-center gap-1 font-medium"
+                >
+                  <MapPin className="w-3 h-3 text-amber-700" />
+                  <span>{settings.footerBanner.address.text}</span>
+                </div>
+              </div>
+
+              {/* Hover Edit Hint */}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded-md flex items-center gap-1 font-mono">
+                <Edit3 className="w-3 h-3 text-amber-400" />
+                <span>Click để sửa chữ banner</span>
+              </div>
+            </div>
           )}
 
-          {settings.lightLeak === 'rainbow' && (
-            <div
-              className="absolute inset-0 pointer-events-none mix-blend-screen opacity-50"
-              style={{
-                background:
-                  'linear-gradient(135deg, rgba(239, 68, 68, 0.4) 0%, rgba(234, 179, 8, 0.3) 30%, rgba(16, 185, 129, 0.25) 50%, rgba(59, 130, 246, 0.3) 75%, rgba(168, 85, 247, 0.4) 100%)',
-              }}
-            />
-          )}
-
-          {settings.lightLeak === 'cyan' && (
-            <div
-              className="absolute inset-0 pointer-events-none mix-blend-screen opacity-60"
-              style={{
-                background:
-                  'radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.6) 0%, rgba(59, 130, 246, 0.2) 60%, transparent 90%)',
-              }}
-            />
-          )}
-
-          {/* Freestyle Movable Layers (Text, Stickers) */}
+          {/* Freestyle Movable Layers */}
           {freestyleLayers.map((layer) => {
             const isSelected = selectedLayerId === layer.id;
             return (
@@ -429,7 +456,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   />
                 )}
 
-                {/* Layer delete button on active selection */}
                 {isSelected && (
                   <button
                     onClick={(e) => {

@@ -9,9 +9,18 @@ import {
   Type,
   Sticker,
   Image as ImageIcon,
+  BadgePercent,
 } from 'lucide-react';
 
-export type ActiveTab = 'layout' | 'filters' | 'adjust' | 'background' | 'text' | 'stickers' | 'ai';
+export type ActiveTab =
+  | 'banner'
+  | 'layout'
+  | 'filters'
+  | 'adjust'
+  | 'background'
+  | 'text'
+  | 'stickers'
+  | 'ai';
 
 interface TopNavbarProps {
   activeTab: ActiveTab;
@@ -31,16 +40,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   onUploadClick,
 }) => {
   return (
-    <header className="h-16 px-4 md:px-6 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between shrink-0 select-none z-30">
-      {/* Zone 1: Single text element wordmark */}
+    <header className="h-16 px-3 md:px-6 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between shrink-0 select-none z-30">
+      {/* Zone 1: Wordmark */}
       <div className="flex items-center gap-3">
         <a
           href="#"
           onClick={(e) => {
             e.preventDefault();
-            setActiveTab('layout');
+            setActiveTab('banner');
           }}
-          className="text-lg md:text-xl font-bold tracking-tight text-white flex items-center gap-2 hover:text-amber-400 transition-colors"
+          className="text-base md:text-xl font-bold tracking-tight text-white flex items-center gap-2 hover:text-amber-400 transition-colors"
           style={{ fontFamily: "'Syne', sans-serif" }}
         >
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block animate-pulse" />
@@ -48,8 +57,21 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         </a>
       </div>
 
-      {/* Zone 2: Navigation links / Primary Tools */}
+      {/* Zone 2: Navigation Links / Primary Tools */}
       <nav className="hidden lg:flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800/80">
+        {/* User's primary requested feature: Banner Bán Hàng Phía Dưới */}
+        <button
+          onClick={() => setActiveTab('banner')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
+            activeTab === 'banner'
+              ? 'bg-amber-400 text-black shadow-sm'
+              : 'text-amber-400 hover:text-amber-300 hover:bg-neutral-800'
+          }`}
+        >
+          <BadgePercent className="w-3.5 h-3.5" />
+          <span>Banner Chữ Dưới</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('layout')}
           className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
@@ -59,7 +81,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           }`}
         >
           <LayoutGrid className="w-3.5 h-3.5" />
-          Bố Cục (Layout)
+          Bố Cục (1-3 Ảnh)
         </button>
 
         <button
@@ -71,7 +93,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           }`}
         >
           <Palette className="w-3.5 h-3.5" />
-          Bộ Lọc & Hiệu Ứng
+          Bộ Lọc Màu
         </button>
 
         <button
@@ -87,18 +109,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('background')}
-          className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
-            activeTab === 'background'
-              ? 'bg-neutral-800 text-white shadow-sm'
-              : 'text-neutral-400 hover:text-white'
-          }`}
-        >
-          <span className="w-3.5 h-3.5 rounded-sm border border-neutral-500 bg-amber-600/30 inline-block" />
-          Khung & Nền
-        </button>
-
-        <button
           onClick={() => setActiveTab('text')}
           className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
             activeTab === 'text'
@@ -107,7 +117,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           }`}
         >
           <Type className="w-3.5 h-3.5" />
-          Chữ Nghệ Thuật
+          Thêm Chữ
         </button>
 
         <button
@@ -119,7 +129,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           }`}
         >
           <Sticker className="w-3.5 h-3.5" />
-          Tem & Sticker
+          Tem & Nhãn
         </button>
 
         <button
@@ -131,7 +141,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          AI Studio
+          AI Caption
         </button>
       </nav>
 
@@ -143,7 +153,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-neutral-300 hover:text-white bg-neutral-800/80 hover:bg-neutral-800 rounded-lg border border-neutral-700/60 transition-colors whitespace-nowrap"
         >
           <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
-          <span className="hidden sm:inline">Thêm Ảnh</span>
+          <span>Thêm Ảnh</span>
         </button>
 
         <button

@@ -4,6 +4,7 @@ import {
   CanvasSettings,
   DoodleStroke,
   FilterPresetId,
+  FooterBannerConfig,
   FreestyleLayer,
   GridTemplate,
   PhotoAdjustments,
@@ -11,8 +12,8 @@ import {
 } from './types';
 import {
   DEFAULT_ADJUSTMENTS,
+  DEFAULT_FOOTER_BANNER,
   GRID_TEMPLATES,
-  STICKER_LIBRARY,
 } from './utils/constants';
 import { getSamplePhotos, SamplePhoto } from './utils/sampleImages';
 import { TopNavbar, ActiveTab } from './components/TopNavbar';
@@ -24,20 +25,22 @@ import { AdjustmentsPanel } from './components/AdjustmentsPanel';
 import { BackgroundPanel } from './components/BackgroundPanel';
 import { TypographyPanel } from './components/TypographyPanel';
 import { StickerPanel } from './components/StickerPanel';
+import { BannerCustomizerPanel } from './components/BannerCustomizerPanel';
 import { ExportModal } from './components/ExportModal';
 import { AiAssistantModal } from './components/AiAssistantModal';
 import { ImagePickerModal } from './components/ImagePickerModal';
 
 export default function App() {
   const [samples, setSamples] = useState<SamplePhoto[]>([]);
-  const [currentTemplate, setCurrentTemplate] = useState<GridTemplate>(GRID_TEMPLATES[7]); // quad-grid
-  const [activeTab, setActiveTab] = useState<ActiveTab>('layout');
+  // Default to user's requested template: 1 Photo Top + Footer Banner (or 2/3 photos)
+  const [currentTemplate, setCurrentTemplate] = useState<GridTemplate>(GRID_TEMPLATES[0]); // banner-1-photo
+  const [activeTab, setActiveTab] = useState<ActiveTab>('banner');
 
   const [settings, setSettings] = useState<CanvasSettings>({
-    aspectRatio: '1:1',
-    outerPadding: 16,
-    innerGap: 12,
-    cellRadius: 16,
+    aspectRatio: '1:1', // Priority 1:1 as requested
+    outerPadding: 0,
+    innerGap: 8,
+    cellRadius: 8,
     backgroundColor: '#09090b',
     backgroundType: 'solid',
     backgroundGradient: {
@@ -48,9 +51,10 @@ export default function App() {
     backgroundTexture: 'none',
     frameStyle: 'none',
     lightLeak: 'none',
-    globalGrain: 14,
-    globalVignette: 15,
+    globalGrain: 0,
+    globalVignette: 0,
     globalFilter: 'none',
+    footerBanner: { ...DEFAULT_FOOTER_BANNER },
   });
 
   const [slots, setSlots] = useState<Record<string, PhotoSlot>>({});
@@ -74,7 +78,8 @@ export default function App() {
     const initialSlots: Record<string, PhotoSlot> = {};
     const sampleUrls = loadedSamples.map((s) => s.dataUrl);
 
-    GRID_TEMPLATES[7].slots.forEach((s, idx) => {
+    // Initial slot for banner-1-photo
+    GRID_TEMPLATES[0].slots.forEach((s, idx) => {
       initialSlots[s.id] = {
         id: s.id,
         imageUrl: sampleUrls[idx % sampleUrls.length] || '',
@@ -84,47 +89,72 @@ export default function App() {
         rotation: 0,
         flipH: false,
         flipV: false,
-        filterId: idx === 0 ? 'kodak-portra' : idx === 1 ? 'golden-hour' : 'vintage-70s',
+        filterId: 'none',
         adjustments: { ...DEFAULT_ADJUSTMENTS },
       };
     });
 
     setSlots(initialSlots);
-
-    // Initial decorative aesthetic typography layer
-    setFreestyleLayers([
-      {
-        id: 'init-text-1',
-        type: 'text',
-        x: 32,
-        y: 84,
-        width: 36,
-        height: 8,
-        rotation: 0,
-        scale: 1,
-        zIndex: 5,
-        opacity: 0.95,
-        textData: {
-          text: 'MOMENTS · COLLECTED',
-          fontFamily: "'Syne', sans-serif",
-          fontSize: 22,
-          color: '#ffffff',
-          letterSpacing: 4,
-          lineHeight: 1.2,
-          textAlign: 'center',
-          fontWeight: '700',
-          isItalic: false,
-          hasBgBox: true,
-          bgBoxColor: 'rgba(9, 9, 11, 0.85)',
-          hasShadow: true,
-        },
-      },
-    ]);
   }, []);
 
-  // Update template and preserve images
+  // Switch between 1, 2, or 3 photos on the top part while keeping the bottom banner!
+  const handleSwitchPhotoCount = useCallback(
+    (count: 1 | 2 | 3) => {
+      let targetTmpl = GRID_TEMPLATES[0]; // 1 photo
+      if (count === 2) targetTmpl = GRID_TEMPLATES[1]; // 2 photos
+      if (count === 3) targetTmpl = GRID_TEMPLATES[2]; // 3 photos (1 large + 2 small)
+
+      setCurrentTemplate(targetTmpl);
+
+      setSlots((prevSlots) => {
+        const nextSlots: Record<string, PhotoSlot> = {};
+        const existingImages = Object.values(prevSlots)
+          .map((s) => s.imageUrl)
+          .filter(Boolean);
+
+        targetTmpl.slots.forEach((s, idx) => {
+          const existing = prevSlots[s.id];
+          if (existing) {
+            nextSlots[s.id] = existing;
+          } else {
+            const imgUrl =
+              existingImages[idx % Math.max(1, existingImages.length)] ||
+              (samples[idx % samples.length] ? samples[idx % samples.length].dataUrl : '');
+            nextSlots[s.id] = {
+              id: s.id,
+              imageUrl: imgUrl,
+              zoom: 1,
+              panX: 0,
+              panY: 0,
+              rotation: 0,
+              flipH: false,
+              flipV: false,
+              filterId: 'none',
+              adjustments: { ...DEFAULT_ADJUSTMENTS },
+            };
+          }
+        });
+        return nextSlots;
+      });
+
+      if (selectedSlotId && !targetTmpl.slots.some((s) => s.id === selectedSlotId)) {
+        setSelectedSlotId(null);
+      }
+    },
+    [samples, selectedSlotId]
+  );
+
+  // Update template
   const handleSelectTemplate = (newTemplate: GridTemplate) => {
     setCurrentTemplate(newTemplate);
+
+    // If template has footer banner, ensure banner is enabled
+    if (newTemplate.hasFooterBanner) {
+      setSettings((prev) => ({
+        ...prev,
+        footerBanner: { ...prev.footerBanner, enabled: true },
+      }));
+    }
 
     setSlots((prevSlots) => {
       const nextSlots: Record<string, PhotoSlot> = {};
@@ -174,7 +204,6 @@ export default function App() {
     });
   }, []);
 
-  // Slot adjustments
   const handleUpdateSlotAdjustments = useCallback(
     (slotId: string, adjustments: Partial<PhotoAdjustments>) => {
       setSlots((prev) => {
@@ -219,7 +248,6 @@ export default function App() {
     [handleUpdateSlotAdjustments, handleUpdateAllSlotsAdjustments]
   );
 
-  // Filter application
   const handleApplyFilterToSlot = useCallback(
     (slotId: string, filterId: FilterPresetId) => {
       handleUpdateSlot(slotId, { filterId });
@@ -237,13 +265,24 @@ export default function App() {
     });
   }, []);
 
-  // Freestyle layers (Typography, Stickers)
+  // Banner updates
+  const handleUpdateBanner = (updated: Partial<FooterBannerConfig>) => {
+    setSettings((prev) => ({
+      ...prev,
+      footerBanner: {
+        ...prev.footerBanner,
+        ...updated,
+      },
+    }));
+  };
+
+  // Freestyle layers
   const handleAddTextLayer = (textConfig: any) => {
     const newLayer: FreestyleLayer = {
       id: `text-${Date.now()}`,
       type: 'text',
       x: 30,
-      y: 45,
+      y: 35,
       width: 40,
       height: 10,
       rotation: 0,
@@ -260,11 +299,11 @@ export default function App() {
     const newLayer: FreestyleLayer = {
       id: `sticker-${Date.now()}`,
       type: 'sticker',
-      x: 40,
-      y: 35,
+      x: 35,
+      y: 25,
       width: 25,
       height: 12,
-      rotation: (Math.random() - 0.5) * 15,
+      rotation: (Math.random() - 0.5) * 10,
       scale: 1,
       zIndex: freestyleLayers.length + 1,
       opacity: 1,
@@ -317,7 +356,6 @@ export default function App() {
             panY: 0,
           });
         } else {
-          // Find first slot or replace slot 1
           const firstSlotId = currentTemplate.slots[0]?.id;
           if (firstSlotId) {
             handleUpdateSlot(firstSlotId, { imageUrl: result });
@@ -369,15 +407,7 @@ export default function App() {
     setSlots(initialSlots);
     setSettings((prev) => ({
       ...prev,
-      outerPadding: 16,
-      innerGap: 12,
-      cellRadius: 16,
-      backgroundColor: '#09090b',
-      backgroundType: 'solid',
-      frameStyle: 'none',
-      lightLeak: 'none',
-      globalGrain: 14,
-      globalVignette: 15,
+      footerBanner: { ...DEFAULT_FOOTER_BANNER },
       globalFilter: 'none',
     }));
     setSelectedSlotId(null);
@@ -391,7 +421,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-neutral-950 text-neutral-100 font-sans">
-      {/* Top Bar with 3-Zone Contract */}
+      {/* Top Navbar */}
       <TopNavbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -404,10 +434,12 @@ export default function App() {
         }}
       />
 
-      {/* Aspect Ratio Ribbon Bar */}
+      {/* Aspect Ratio & Photo Count Ribbon (1:1, 4:5, 3:4 Priority) */}
       <AspectRatioBar
         currentRatio={settings.aspectRatio}
         onChangeRatio={(ratio) => setSettings((s) => ({ ...s, aspectRatio: ratio }))}
+        currentPhotoCount={currentTemplate.photoCount}
+        onSwitchPhotoCount={handleSwitchPhotoCount}
       />
 
       {/* Main Studio Workspace: Canvas Stage + Right Sidebar Tools */}
@@ -429,10 +461,20 @@ export default function App() {
           onImageDropOnSlot={handleImageDropOnSlot}
           onReplaceImageTrigger={handleOpenPickerForSlot}
           onOpenDetailedAdjust={() => setActiveTab('adjust')}
+          onOpenBannerCustomizer={() => setActiveTab('banner')}
         />
 
         {/* Right Sidebar Tool Panel */}
         <aside className="w-80 md:w-96 bg-neutral-900 border-l border-neutral-800 flex flex-col shrink-0 overflow-y-auto z-20">
+          {activeTab === 'banner' && (
+            <BannerCustomizerPanel
+              banner={settings.footerBanner}
+              onUpdateBanner={handleUpdateBanner}
+              onSwitchPhotoCount={handleSwitchPhotoCount}
+              currentPhotoCount={currentTemplate.photoCount}
+            />
+          )}
+
           {activeTab === 'layout' && (
             <LayoutPicker
               currentTemplate={currentTemplate}
@@ -483,15 +525,15 @@ export default function App() {
 
           {activeTab === 'ai' && (
             <div className="p-6 text-center space-y-4">
-              <h3 className="text-sm font-bold text-white">AI Studio Assistant</h3>
+              <h3 className="text-sm font-bold text-white">AI Caption Studio</h3>
               <p className="text-xs text-neutral-400">
-                Sử dụng trí tuệ nhân tạo Gemini để sáng tạo câu từ nghệ thuật, trích dẫn thơ hoặc tự động đề xuất phong cách bố cục và màu sắc.
+                Sử dụng AI để tự động tạo caption hấp dẫn, lời quảng cáo chốt sale hoặc câu nói nghệ thuật để gắn lên ảnh.
               </p>
               <button
                 onClick={() => setIsAiModalOpen(true)}
                 className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-semibold rounded-xl text-xs transition-colors"
               >
-                Mở Cửa Sổ Trợ Lý AI
+                Mở Trợ Lý AI
               </button>
             </div>
           )}

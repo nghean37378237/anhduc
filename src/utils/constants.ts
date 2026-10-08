@@ -1,15 +1,16 @@
 import {
   AspectRatioOption,
   FilterPreset,
+  FooterBannerConfig,
   GridTemplate,
   PhotoAdjustments,
 } from '../types';
 
 export const ASPECT_RATIOS: AspectRatioOption[] = [
-  { id: '1:1', label: '1:1', sublabel: 'Vuông (Instagram)', width: 1080, height: 1080 },
-  { id: '4:5', label: '4:5', sublabel: 'Chân dung Feed', width: 1080, height: 1350 },
+  { id: '1:1', label: '1:1', sublabel: 'Vuông (Ưu tiên)', width: 1080, height: 1080, isPriority: true },
+  { id: '4:5', label: '4:5', sublabel: 'Chân dung Feed (Ưu tiên)', width: 1080, height: 1350, isPriority: true },
+  { id: '3:4', label: '3:4', sublabel: 'Dọc 3:4 (Ưu tiên)', width: 1080, height: 1440, isPriority: true },
   { id: '9:16', label: '9:16', sublabel: 'Story / Reel / TikTok', width: 1080, height: 1920 },
-  { id: '3:4', label: '3:4', sublabel: 'Tạp chí / Poster', width: 1080, height: 1440 },
   { id: '16:9', label: '16:9', sublabel: 'Toàn cảnh Cinematic', width: 1920, height: 1080 },
   { id: '2:3', label: '2:3', sublabel: 'Phim 35mm Cổ điển', width: 1080, height: 1620 },
   { id: '4:3', label: '4:3', sublabel: 'Ngang Tiêu chuẩn', width: 1440, height: 1080 },
@@ -28,6 +29,45 @@ export const DEFAULT_ADJUSTMENTS: PhotoAdjustments = {
   sepia: 0,
   chromaticAberration: 0,
   invert: 0,
+};
+
+export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
+  enabled: true,
+  heightPercent: 32, // 32% bottom banner height
+  backgroundColor: '#facc15', // Vibrant yellow like user image
+  pattern: 'grid-dots',
+  badge: {
+    enabled: true,
+    text: 'HỖ TRỢ TRẢ GÓP 70%',
+    bgColor: '#ea580c',
+    textColor: '#ffffff',
+  },
+  headline: {
+    text: '37CAR · MUA BÁN & KÝ GỬI Ô TÔ',
+    fontSize: 22,
+    color: '#09090b',
+    fontWeight: '800',
+  },
+  subheadline: {
+    text: 'DUYỆT HỒ SƠ NHANH · LÃI SUẤT THẤP',
+    fontSize: 15,
+    color: '#b45309',
+  },
+  details: {
+    text: '• Xe tuyển chọn bao test hãng toàn quốc\n• Cam kết không đâm đụng, không ngập nước\n• Bảo hành động cơ & hộp số 12 tháng',
+    fontSize: 12,
+    color: '#1f2937',
+  },
+  hotline: {
+    text: 'Hotline / Zalo: 0987.361.234 - 0967.765.005',
+    fontSize: 14,
+    color: '#dc2626',
+  },
+  address: {
+    text: 'Địa chỉ: Số 82 - Đại Lộ Lê Nin, TP. Vinh',
+    fontSize: 12,
+    color: '#374151',
+  },
 };
 
 export const FILTER_PRESETS: FilterPreset[] = [
@@ -162,7 +202,56 @@ export const FILTER_PRESETS: FilterPreset[] = [
 ];
 
 export const GRID_TEMPLATES: GridTemplate[] = [
-  // 1 Photo
+  // --- USER PRIORITY: BANNER BÁN HÀNG & POSTER CHỮ (1 Ảnh, 2 Ảnh, 3 Ảnh Trên + Banner Dưới) ---
+  {
+    id: 'banner-1-photo',
+    name: '1 Ảnh Trên + Banner Chữ Dưới',
+    category: 'Banner Bán Hàng',
+    photoCount: 1,
+    hasFooterBanner: true,
+    description: '1 ảnh lớn phía trên (68%), phần dưới viết tiêu đề, giá bán, hotline và địa chỉ',
+    slots: [{ id: 's1', x: 0, y: 0, width: 100, height: 68 }],
+  },
+  {
+    id: 'banner-2-photos',
+    name: '2 Ảnh Trên + Banner Chữ Dưới',
+    category: 'Banner Bán Hàng',
+    photoCount: 2,
+    hasFooterBanner: true,
+    description: '2 ảnh chia đôi ngang phía trên (68%), phần dưới là banner viết chữ',
+    slots: [
+      { id: 's1', x: 0, y: 0, width: 50, height: 68 },
+      { id: 's2', x: 50, y: 0, width: 50, height: 68 },
+    ],
+  },
+  {
+    id: 'banner-3-photos',
+    name: '3 Ảnh Trên (1 Lớn + 2 Nhỏ) + Banner',
+    category: 'Banner Bán Hàng',
+    photoCount: 3,
+    hasFooterBanner: true,
+    description: '1 ảnh toàn cảnh lớn bên trái, 2 ảnh chi tiết góc cạnh bên phải + banner chữ phía dưới',
+    slots: [
+      { id: 's1', x: 0, y: 0, width: 62, height: 68 },
+      { id: 's2', x: 62, y: 0, width: 38, height: 34 },
+      { id: 's3', x: 62, y: 34, width: 38, height: 34 },
+    ],
+  },
+  {
+    id: 'banner-3-cols',
+    name: '3 Ảnh Cột Đều Trên + Banner',
+    category: 'Banner Bán Hàng',
+    photoCount: 3,
+    hasFooterBanner: true,
+    description: '3 ảnh chia đều 3 cột góc chụp phía trên + banner chữ phía dưới',
+    slots: [
+      { id: 's1', x: 0, y: 0, width: 33.333, height: 68 },
+      { id: 's2', x: 33.333, y: 0, width: 33.333, height: 68 },
+      { id: 's3', x: 66.666, y: 0, width: 33.334, height: 68 },
+    ],
+  },
+
+  // --- CÁC MẪU LƯỚI KHÁC ---
   {
     id: 'solo-hero',
     name: 'Đơn Sắc Trọng Tâm (1 Ảnh)',
@@ -171,8 +260,6 @@ export const GRID_TEMPLATES: GridTemplate[] = [
     description: '1 ảnh toàn màn hình với tỷ lệ khung hình tinh chỉnh',
     slots: [{ id: 's1', x: 0, y: 0, width: 100, height: 100 }],
   },
-
-  // 2 Photos
   {
     id: 'split-2-v',
     name: 'Song Đôi Dọc (2 Ảnh)',
@@ -206,8 +293,6 @@ export const GRID_TEMPLATES: GridTemplate[] = [
       { id: 's2', x: 65, y: 0, width: 35, height: 100 },
     ],
   },
-
-  // 3 Photos
   {
     id: 'trio-hero-top',
     name: '1 Lớn Trên + 2 Dưới (3 Ảnh)',
@@ -244,8 +329,6 @@ export const GRID_TEMPLATES: GridTemplate[] = [
       { id: 's3', x: 66.666, y: 0, width: 33.334, height: 100 },
     ],
   },
-
-  // 4 Photos
   {
     id: 'quad-grid',
     name: 'Lưới 2x2 Cân Đối (4 Ảnh)',
@@ -273,21 +356,6 @@ export const GRID_TEMPLATES: GridTemplate[] = [
     ],
   },
   {
-    id: 'filmstrip-4',
-    name: 'Dải Phim 4 Tấm Tiếp Nối',
-    category: 'Phim Ảnh',
-    photoCount: 4,
-    description: '4 khung ảnh xếp tầng liên hoàn phong cách contact sheet',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 100, height: 25 },
-      { id: 's2', x: 0, y: 25, width: 100, height: 25 },
-      { id: 's3', x: 0, y: 50, width: 100, height: 25 },
-      { id: 's4', x: 0, y: 75, width: 100, height: 25 },
-    ],
-  },
-
-  // 5 Photos
-  {
     id: 'bento-5',
     name: 'Bento Grid Hiện Đại (5 Ảnh)',
     category: 'Bento',
@@ -301,8 +369,6 @@ export const GRID_TEMPLATES: GridTemplate[] = [
       { id: 's5', x: 45, y: 60, width: 55, height: 40 },
     ],
   },
-
-  // 6 Photos
   {
     id: 'gallery-6',
     name: 'Bộ Sưu Tập 2x3 (6 Ảnh)',
@@ -318,32 +384,17 @@ export const GRID_TEMPLATES: GridTemplate[] = [
       { id: 's6', x: 66.666, y: 50, width: 33.334, height: 50 },
     ],
   },
-  {
-    id: 'fashion-editorial-6',
-    name: 'Editorial Spotlight (6 Ảnh)',
-    category: 'Tạp Chí',
-    photoCount: 6,
-    description: '1 ảnh dọc ấn tượng bên trái và 5 ô câu chuyện bên phải',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 45, height: 100 },
-      { id: 's2', x: 45, y: 0, width: 27.5, height: 50 },
-      { id: 's3', x: 72.5, y: 0, width: 27.5, height: 50 },
-      { id: 's4', x: 45, y: 50, width: 18.33, height: 50 },
-      { id: 's5', x: 63.33, y: 50, width: 18.33, height: 50 },
-      { id: 's6', x: 81.66, y: 50, width: 18.34, height: 50 },
-    ],
-  },
 ];
 
 export const COLOR_PALETTES = [
+  { id: 'showroom-yellow', name: 'Vàng Showroom 37Car', color: '#facc15', text: '#09090b' },
   { id: 'dark-obsidian', name: 'Đá Đen Huyền Bí', color: '#09090b', text: '#ffffff' },
   { id: 'slate-midnight', name: 'Xanh Đêm Midnight', color: '#0f172a', text: '#ffffff' },
   { id: 'editorial-travertine', name: 'Đá Travertine Ý', color: '#f5f5f0', text: '#18181b' },
   { id: 'clean-white', name: 'Trắng Studio Tinh Khiết', color: '#ffffff', text: '#09090b' },
+  { id: 'vibrant-red', name: 'Đỏ Nổi Bật Siêu Deal', color: '#dc2626', text: '#ffffff' },
   { id: 'warm-terracotta', name: 'Đất Nung Terracotta', color: '#291b16', text: '#fde68a' },
-  { id: 'warm-sand', name: 'Cát Vàng Safari', color: '#f4ede4', text: '#292524' },
   { id: 'forest-pine', name: 'Rừng Thông Xanh', color: '#052e16', text: '#dcfce7' },
-  { id: 'burgundy-wine', name: 'Đỏ Rượu Vang', color: '#3b0713', text: '#ffe4e6' },
   { id: 'nordic-gray', name: 'Xám Xi Măng Nordic', color: '#27272a', text: '#fafafa' },
 ];
 
@@ -357,7 +408,15 @@ export const GRADIENT_PRESETS = [
 ];
 
 export const STICKER_LIBRARY = [
-  // Stamps & Badges
+  {
+    id: 'badge-hot-deal',
+    category: 'Bán Hàng',
+    title: 'Hỗ Trợ Trả Góp 70%',
+    svg: `<svg viewBox="0 0 160 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 0H145L160 48H15L0 0Z" fill="#ea580c"/>
+      <text x="80" y="30" font-family="'Syne', sans-serif" font-size="13" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="1">TRẢ GÓP 70%</text>
+    </svg>`,
+  },
   {
     id: 'stamp-35mm',
     category: 'Phim 35mm',
@@ -411,16 +470,6 @@ export const STICKER_LIBRARY = [
     </svg>`,
   },
   {
-    id: 'stamp-editorial',
-    category: 'Tạp Chí',
-    title: 'Editorial Issue Badge',
-    svg: `<svg viewBox="0 0 140 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="2" width="136" height="41" rx="2" stroke="currentColor" stroke-width="2"/>
-      <text x="70" y="21" font-family="'Syne', sans-serif" font-size="11" font-weight="700" fill="currentColor" text-anchor="middle" letter-spacing="3">EDITORIAL</text>
-      <text x="70" y="34" font-family="'JetBrains Mono', monospace" font-size="8" fill="currentColor" text-anchor="middle" letter-spacing="2">VOL. 04 · NO. 88</text>
-    </svg>`,
-  },
-  {
     id: 'stamp-washi-tape',
     category: 'Băng Dính Washi',
     title: 'Băng Dính Bóc Dán Washi Tape',
@@ -436,18 +485,6 @@ export const STICKER_LIBRARY = [
     title: 'Ngôi Sao Lấp Lánh',
     svg: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M40 0C40 22 22 40 0 40C22 40 40 58 40 80C40 58 58 40 80 40C58 40 40 22 40 0Z" fill="currentColor"/>
-    </svg>`,
-  },
-  {
-    id: 'stamp-postage',
-    category: 'Tem Bưu Chính',
-    title: 'Dấu Bưu Điện Xưa',
-    svg: `<svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="45" cy="45" r="42" stroke="currentColor" stroke-width="2.5"/>
-      <circle cx="45" cy="45" r="34" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3 3"/>
-      <text x="45" y="36" font-family="'Syne', sans-serif" font-size="8" font-weight="700" fill="currentColor" text-anchor="middle" letter-spacing="2">AIR MAIL</text>
-      <text x="45" y="52" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="currentColor" text-anchor="middle">PARIS</text>
-      <text x="45" y="65" font-family="'JetBrains Mono', monospace" font-size="7" fill="currentColor" text-anchor="middle">1978 · POST</text>
     </svg>`,
   },
 ];
