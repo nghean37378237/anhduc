@@ -8,7 +8,7 @@ import {
 } from '../types';
 import { getFullSlotFilter } from '../utils/filterEngine';
 import { CellQuickEdit } from './CellQuickEdit';
-import { ZoomIn, ZoomOut, Maximize2, Trash2, Move, Phone, MapPin, Edit3 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Trash2, Move, Phone, Mail, Edit3, Quote } from 'lucide-react';
 
 interface CanvasAreaProps {
   settings: CanvasSettings;
@@ -68,16 +68,16 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     initY: 0,
   });
 
-  // Calculate container aspect ratio dimensions
   const [ratioW, ratioH] = settings.aspectRatio.split(':').map(Number);
   const aspectRatioValue = ratioW / ratioH;
 
-  // Has bottom commercial banner?
   const isBannerMode = template.hasFooterBanner || settings.footerBanner.enabled;
   const bannerHeightPct = isBannerMode ? settings.footerBanner.heightPercent : 0;
   const topPhotosHeightPct = isBannerMode ? 100 - bannerHeightPct : 100;
 
-  // Handle slot panning
+  const banner = settings.footerBanner;
+  const themeColor = banner.brandLogo.themeColor || '#059669';
+
   const handleSlotMouseDown = (e: React.MouseEvent, slotId: string) => {
     onSelectSlot(slotId);
     onSelectLayer(null);
@@ -94,7 +94,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    // 1. Photo panning
     if (isPanningSlot) {
       const slot = slots[isPanningSlot];
       if (!slot) return;
@@ -106,7 +105,6 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
       onUpdateSlot(isPanningSlot, { panX: Math.round(newPanX), panY: Math.round(newPanY) });
     }
 
-    // 2. Freestyle Layer dragging
     if (isDraggingLayer && containerRef.current) {
       const layer = freestyleLayers.find((l) => l.id === isDraggingLayer);
       if (!layer) return;
@@ -172,6 +170,43 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     return { backgroundColor: settings.backgroundColor };
   };
 
+  // Helper to render headline words with red/custom highlights
+  const renderHighlightedHeadline = () => {
+    const rawText = banner.headline.text;
+    const highlightPhrases = (banner.headline.highlightWords || '')
+      .split(',')
+      .map((w) => w.trim().toUpperCase())
+      .filter(Boolean);
+
+    if (highlightPhrases.length === 0) {
+      return (
+        <span style={{ color: banner.headline.color }}>
+          {rawText}
+        </span>
+      );
+    }
+
+    const words = rawText.split(' ');
+    return words.map((w, idx) => {
+      const cleanUpper = w.replace(/^[“"']|[”"',.?!:;]$/g, '').toUpperCase();
+      const isMatch = highlightPhrases.some(
+        (phrase) => phrase.includes(cleanUpper) || cleanUpper.includes(phrase)
+      );
+
+      return (
+        <span
+          key={idx}
+          style={{
+            color: isMatch ? banner.headline.highlightColor : banner.headline.color,
+          }}
+          className={isMatch ? 'font-black' : ''}
+        >
+          {w}{' '}
+        </span>
+      );
+    });
+  };
+
   const activeSlot = selectedSlotId ? slots[selectedSlotId] : null;
 
   return (
@@ -184,7 +219,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
         onSelectLayer(null);
       }}
     >
-      {/* Canvas Frame Stage */}
+      {/* Canvas Stage */}
       <div
         className="relative max-w-full max-h-full flex items-center justify-center transition-transform duration-200"
         style={{
@@ -213,10 +248,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
               const isSelected = selectedSlotId === slotDef.id;
               const isDragTarget = dragOverSlotId === slotDef.id;
 
-              // Scale slot coordinate within top area
-              const slotGapHalf = settings.innerGap * 0.2;
+              const slotGapHalf = settings.innerGap * 0.18;
               const adjustedHeight = isBannerMode
-                ? (slotDef.height / 68) * 100 // normalized within top area
+                ? (slotDef.height / 68) * 100
                 : slotDef.height;
               const adjustedY = isBannerMode
                 ? (slotDef.y / 68) * 100
@@ -267,26 +301,17 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                         }}
                       />
 
-                      {/* Vignette Overlay */}
-                      {((slotData.adjustments.vignette || 0) + (settings.globalVignette || 0)) > 0 && (
-                        <div
-                          className="absolute inset-0 pointer-events-none"
-                          style={{
-                            background: `radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,${
-                              Math.min(
-                                0.9,
-                                ((slotData.adjustments.vignette || 0) + (settings.globalVignette || 0)) /
-                                  100
-                              )
-                            }) 100%)`,
-                          }}
-                        />
+                      {/* Photo Credit tag in top-right of photo if quote style */}
+                      {banner.quoteBadge && banner.quoteBadge.enabled && banner.quoteBadge.creditText && (
+                        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-xs text-white/90 text-[10px] font-mono px-2 py-0.5 rounded-xs pointer-events-none">
+                          {banner.quoteBadge.creditText}
+                        </div>
                       )}
 
                       {/* Hover Pan Indicator */}
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-xs text-[10px] text-white px-2 py-0.5 rounded-md flex items-center gap-1 font-mono pointer-events-none">
                         <Move className="w-3 h-3 text-amber-400" />
-                        <span>Kéo để căn ảnh</span>
+                        <span>Kéo căn ảnh</span>
                       </div>
                     </div>
                   ) : (
@@ -297,7 +322,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                       <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
                         +
                       </div>
-                      <span className="text-xs text-neutral-400 font-medium">Thêm ảnh vào đây</span>
+                      <span className="text-xs text-neutral-400 font-medium">Thêm ảnh</span>
                     </div>
                   )}
                 </div>
@@ -305,7 +330,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
             })}
           </div>
 
-          {/* Bottom Commercial Banner (phần dưới viết chữ như mẫu người dùng gửi) */}
+          {/* Bottom Commercial / News Banner */}
           {isBannerMode && (
             <div
               onClick={(e) => {
@@ -314,92 +339,139 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
               }}
               style={{
                 height: `${bannerHeightPct}%`,
-                backgroundColor: settings.footerBanner.backgroundColor,
+                backgroundColor: banner.backgroundColor,
               }}
-              className="relative w-full overflow-hidden flex flex-col justify-between p-3 sm:p-5 select-none cursor-pointer border-t border-black/10 group transition-all"
+              className="relative w-full overflow-visible flex flex-col justify-between p-3 sm:p-5 select-none cursor-pointer group transition-all"
             >
-              {/* Dot Grid Pattern Texture (y như mẫu ảnh 37Car của khách) */}
+              {/* Green/Themed Accent Line with Dot at the top border (Chuẩn Theanh28) */}
               <div
-                className="absolute inset-0 pointer-events-none opacity-20"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle, rgba(0,0,0,0.4) 1px, transparent 1px)',
-                  backgroundSize: '10px 10px',
-                }}
-              />
+                style={{ backgroundColor: themeColor }}
+                className="absolute -top-1 left-0 right-0 h-1 z-10 flex items-center justify-center"
+              >
+                <div
+                  style={{ backgroundColor: themeColor }}
+                  className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm"
+                />
+              </div>
 
-              {/* Slanted Ribbon Badge tab sitting at the top left edge */}
-              {settings.footerBanner.badge.enabled && settings.footerBanner.badge.text && (
+              {/* Logo & Pill Badge at the dividing line */}
+              {banner.brandLogo.enabled && (
                 <div
                   style={{
-                    backgroundColor: settings.footerBanner.badge.bgColor,
-                    color: settings.footerBanner.badge.textColor,
-                    clipPath: 'polygon(0 0, calc(100% - 16px) 0, 100% 100%, 0 100%)',
+                    backgroundColor: themeColor,
                   }}
-                  className="absolute -top-3 left-0 px-4 py-1.5 shadow-md flex items-center justify-center z-10"
+                  className="absolute -top-4 sm:-top-5 left-4 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-lg flex items-center gap-2 z-20 border-2 border-white"
                 >
-                  <span className="text-xs sm:text-sm font-black tracking-wider uppercase pr-2 font-display">
-                    {settings.footerBanner.badge.text}
+                  {/* Circular symbol badge */}
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white flex items-center justify-center shadow-xs">
+                    {banner.brandLogo.customImageUrl ? (
+                      <img
+                        src={banner.brandLogo.customImageUrl}
+                        alt="Logo"
+                        className="w-full h-full object-contain rounded-full"
+                      />
+                    ) : (
+                      <span
+                        style={{ color: themeColor }}
+                        className="text-xs sm:text-sm font-black font-display"
+                      >
+                        {banner.brandLogo.symbolText || '28'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Badge text (e.g. NEWS) */}
+                  <span className="text-xs sm:text-sm font-black text-white tracking-wider font-display">
+                    {banner.brandLogo.badgeText || 'NEWS'}
                   </span>
                 </div>
               )}
 
-              {/* Top Text Content: Headline & Subheadline */}
-              <div className="relative z-10 pt-2 sm:pt-3">
-                <div
-                  style={{
-                    color: settings.footerBanner.headline.color,
-                  }}
-                  className="text-base sm:text-xl font-black tracking-tight leading-tight uppercase font-display"
-                >
-                  {settings.footerBanner.headline.text}
-                </div>
-
-                <div
-                  style={{
-                    color: settings.footerBanner.subheadline.color,
-                  }}
-                  className="text-xs sm:text-sm font-bold tracking-wide mt-0.5 leading-snug"
-                >
-                  {settings.footerBanner.subheadline.text}
-                </div>
-              </div>
-
-              {/* Details & Commitments Specs */}
-              {settings.footerBanner.details.text && (
-                <div
-                  style={{
-                    color: settings.footerBanner.details.color,
-                  }}
-                  className="relative z-10 text-[10px] sm:text-xs leading-relaxed my-1 whitespace-pre-wrap font-medium"
-                >
-                  {settings.footerBanner.details.text}
+              {/* Quote Badge "“ ”" if enabled */}
+              {banner.quoteBadge && banner.quoteBadge.enabled && (
+                <div className="flex justify-center -mt-2 mb-1">
+                  <div
+                    style={{ backgroundColor: banner.quoteBadge.bgColor || '#facc15' }}
+                    className="px-3 py-0.5 rounded text-black font-black text-sm tracking-widest shadow-xs"
+                  >
+                    “ ”
+                  </div>
                 </div>
               )}
 
-              {/* Bottom Row: Hotline & Address */}
-              <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-black/10 text-[10px] sm:text-xs font-semibold">
+              {/* Main Headline or 2-Columns */}
+              <div className="relative z-10 pt-2 sm:pt-3">
+                {banner.twoColumns && banner.twoColumns.enabled ? (
+                  /* Two Columns Comparison Mode */
+                  <div className="grid grid-cols-2 gap-3 text-left">
+                    <div>
+                      <div
+                        style={{ color: banner.twoColumns.col1Color || '#dc2626' }}
+                        className="text-xs sm:text-sm font-black uppercase mb-1 leading-tight"
+                      >
+                        {banner.twoColumns.col1Title}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-neutral-900 leading-snug">
+                        {banner.twoColumns.col1Text}
+                      </div>
+                    </div>
+
+                    <div className="border-l border-neutral-300 pl-3">
+                      <div
+                        style={{ color: banner.twoColumns.col2Color || '#dc2626' }}
+                        className="text-xs sm:text-sm font-black uppercase mb-1 leading-tight"
+                      >
+                        {banner.twoColumns.col2Title}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-neutral-900 leading-snug">
+                        {banner.twoColumns.col2Text}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Standard Single Headline with highlighted keywords */
+                  <div
+                    style={{
+                      fontSize: `clamp(13px, 2.2vw, ${banner.headline.fontSize}px)`,
+                    }}
+                    className="font-black tracking-tight leading-snug uppercase text-left font-display"
+                  >
+                    {renderHighlightedHeadline()}
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Right Meta Bar (Logo + Hotline + Email) */}
+              <div className="relative z-10 flex items-center justify-end gap-2 pt-1 border-t border-black/5 text-[9px] sm:text-[11px] font-bold">
+                {/* Mini Circle Badge */}
                 <div
-                  style={{ color: settings.footerBanner.hotline.color }}
-                  className="flex items-center gap-1 font-bold"
+                  style={{ backgroundColor: themeColor }}
+                  className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-black"
                 >
-                  <Phone className="w-3 h-3 fill-current" />
-                  <span>{settings.footerBanner.hotline.text}</span>
+                  {banner.brandLogo.symbolText || '28'}
                 </div>
 
                 <div
-                  style={{ color: settings.footerBanner.address.color }}
-                  className="flex items-center gap-1 font-medium"
+                  style={{ color: banner.footerMeta.color || themeColor }}
+                  className="flex items-center gap-1.5"
                 >
-                  <MapPin className="w-3 h-3 text-amber-700" />
-                  <span>{settings.footerBanner.address.text}</span>
+                  <Phone className="w-3 h-3 fill-current" />
+                  <span>{banner.footerMeta.hotline}</span>
+                </div>
+
+                <div
+                  style={{ color: banner.footerMeta.color || themeColor }}
+                  className="flex items-center gap-1 ml-1"
+                >
+                  <Mail className="w-3 h-3" />
+                  <span>{banner.footerMeta.emailOrPage}</span>
                 </div>
               </div>
 
               {/* Hover Edit Hint */}
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded-md flex items-center gap-1 font-mono">
                 <Edit3 className="w-3 h-3 text-amber-400" />
-                <span>Click để sửa chữ banner</span>
+                <span>Sửa logo & chữ banner</span>
               </div>
             </div>
           )}
@@ -449,21 +521,13 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   </div>
                 )}
 
-                {layer.type === 'sticker' && layer.stickerData && (
-                  <div
-                    className="w-28 md:w-36 text-amber-400"
-                    dangerouslySetInnerHTML={{ __html: layer.stickerData.svgContent }}
-                  />
-                )}
-
                 {isSelected && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteLayer(layer.id);
                     }}
-                    className="absolute -top-3 -right-3 w-6 h-6 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110"
-                    title="Xóa phần tử này"
+                    className="absolute -top-3 -right-3 w-6 h-6 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -474,7 +538,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
         </div>
       </div>
 
-      {/* Quick floating toolbar for the clicked cell */}
+      {/* Floating Toolbar on Clicked Cell */}
       {activeSlot && (
         <CellQuickEdit
           slot={activeSlot}
@@ -485,12 +549,12 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
         />
       )}
 
-      {/* Floating Canvas Zoom & Viewport Controls (Bottom Right) */}
+      {/* Floating Canvas Zoom Controls */}
       <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1 bg-neutral-900/90 backdrop-blur-md border border-neutral-800 p-1.5 rounded-xl shadow-xl">
         <button
           onClick={() => setZoomLevel((z) => Math.max(0.5, +(z - 0.15).toFixed(2)))}
           className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
-          title="Thu nhỏ view"
+          title="Thu nhỏ"
         >
           <ZoomOut className="w-3.5 h-3.5" />
         </button>
@@ -502,7 +566,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
         <button
           onClick={() => setZoomLevel((z) => Math.min(2, +(z + 0.15).toFixed(2)))}
           className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
-          title="Phóng to view"
+          title="Phóng to"
         >
           <ZoomIn className="w-3.5 h-3.5" />
         </button>
@@ -512,7 +576,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
         <button
           onClick={() => setZoomLevel(1)}
           className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
-          title="Vừa màn hình (100%)"
+          title="Mặc định 100%"
         >
           <Maximize2 className="w-3.5 h-3.5" />
         </button>

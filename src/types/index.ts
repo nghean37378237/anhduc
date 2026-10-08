@@ -80,7 +80,7 @@ export interface GridTemplateSlot {
 export interface GridTemplate {
   id: string;
   name: string;
-  category: 'Banner Bán Hàng' | 'Cơ Bản' | 'Tạp Chí' | 'Phim Ảnh' | 'Bento' | 'Đặc Biệt';
+  category: 'Tin Tức Báo Chí' | 'Banner Bán Hàng' | 'Cơ Bản' | 'Tạp Chí' | 'Phim Ảnh' | 'Bento';
   photoCount: number;
   slots: GridTemplateSlot[];
   description: string;
@@ -102,41 +102,62 @@ export type BackgroundType = 'solid' | 'gradient' | 'texture';
 export type TextureType = 'none' | 'paper' | 'grain' | 'grid' | 'linen' | 'marble' | 'dots';
 export type LightLeakType = 'none' | 'golden' | 'rainbow' | 'sunset' | 'cyan';
 
+export type BannerStyleType =
+  | 'theanh28-news' // Chuẩn tin tức mạng xã hội Theanh28 / Beatvn / Kenh14
+  | 'two-columns'   // 2 cột so sánh như ảnh 2 bác sĩ
+  | 'dark-quote'    // Nền tối với quote "" và credit góc phải như ảnh xăng
+  | 'showroom';     // Banner vàng rực Showroom ô tô
+
 export interface FooterBannerConfig {
   enabled: boolean;
-  heightPercent: number; // e.g. 33 (33% from bottom)
-  backgroundColor: string; // default '#f59e0b' or '#eab308'
-  pattern: 'grid-dots' | 'solid' | 'diagonal-stripes' | 'mesh';
-  badge: {
+  heightPercent: number; // e.g. 32
+  styleType: BannerStyleType;
+  backgroundColor: string; // #f1f5f9 (light), #09090b (dark), #facc15 (yellow)
+  pattern: 'none' | 'grid-dots' | 'diagonal-stripes';
+
+  // Corner Brand Logo & Badge
+  brandLogo: {
     enabled: boolean;
-    text: string;
-    bgColor: string;
-    textColor: string;
+    logoType: 'symbol' | 'image';
+    symbolText: string; // e.g. "28", "37", "CAR", "HOT"
+    badgeText: string;  // e.g. "NEWS", "TIN NÓNG", "SHOWROOM"
+    customImageUrl?: string;
+    themeColor: string; // e.g. "#059669" (emerald), "#dc2626" (red), "#facc15" (yellow)
+    position: 'divider-left' | 'top-left-watermark' | 'bottom-left';
   };
+
+  // Headline with keyword highlighting (e.g. Bôi đỏ từ quan trọng)
   headline: {
     text: string;
-    fontSize: number;
-    color: string;
-    fontWeight: string;
-  };
-  subheadline: {
-    text: string;
+    highlightWords: string; // Words to color in highlightColor, e.g. "CUỘC ĐUA, VẪN LUÔN TÔN TRỌNG"
+    highlightColor: string; // e.g. "#dc2626" (red) or "#facc15" (yellow)
     fontSize: number;
     color: string;
   };
-  details: {
-    text: string;
-    fontSize: number;
-    color: string;
+
+  // 2 Columns comparison mode (như ảnh 2 bác sĩ)
+  twoColumns: {
+    enabled: boolean;
+    col1Title: string;
+    col1Text: string;
+    col1Color: string;
+    col2Title: string;
+    col2Text: string;
+    col2Color: string;
   };
-  hotline: {
-    text: string;
-    fontSize: number;
-    color: string;
+
+  // Quotation marks badge & credit (như ảnh xăng)
+  quoteBadge: {
+    enabled: boolean;
+    symbol: string; // "“ ”"
+    bgColor: string; // "#facc15"
+    creditText: string; // "ẢNH: HOÀI BẢO"
   };
-  address: {
-    text: string;
-    fontSize: number;
+
+  // Bottom contact bar
+  footerMeta: {
+    hotline: string;
+    emailOrPage: string;
     color: string;
   };
 }

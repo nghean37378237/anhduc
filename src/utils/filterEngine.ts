@@ -118,93 +118,68 @@ export function drawFilmGrain(
   ctx.restore();
 }
 
-export function drawLightLeak(
+/**
+ * Helper to wrap and draw text with keyword highlighting on canvas
+ */
+function drawTextWithHighlights(
   ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  type: string
+  text: string,
+  highlightWordsStr: string,
+  defaultColor: string,
+  highlightColor: string,
+  startX: number,
+  startY: number,
+  maxWidth: number,
+  lineHeight: number
 ) {
-  if (type === 'none') return;
-  ctx.save();
-  ctx.globalCompositeOperation = 'screen';
+  const highlightPhrases = highlightWordsStr
+    .split(',')
+    .map((w) => w.trim().toUpperCase())
+    .filter(Boolean);
 
-  if (type === 'golden' || type === 'sunset') {
-    const grad = ctx.createLinearGradient(0, 0, width * 0.7, height * 0.8);
-    grad.addColorStop(0, 'rgba(251, 146, 60, 0.45)');
-    grad.addColorStop(0.4, 'rgba(245, 158, 11, 0.25)');
-    grad.addColorStop(0.8, 'rgba(239, 68, 68, 0.1)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
-  } else if (type === 'rainbow') {
-    const grad = ctx.createLinearGradient(width * 0.2, 0, width * 0.8, height);
-    grad.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
-    grad.addColorStop(0.3, 'rgba(234, 179, 8, 0.25)');
-    grad.addColorStop(0.6, 'rgba(16, 185, 129, 0.2)');
-    grad.addColorStop(0.8, 'rgba(59, 130, 246, 0.25)');
-    grad.addColorStop(1, 'rgba(168, 85, 247, 0.3)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
-  } else if (type === 'cyan') {
-    const grad = ctx.createLinearGradient(width, 0, 0, height);
-    grad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
-    grad.addColorStop(0.5, 'rgba(14, 165, 233, 0.2)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, width, height);
-  }
+  const words = text.split(' ');
+  let lineWords: { word: string; isHighlight: boolean }[] = [];
+  let currentY = startY;
 
-  ctx.restore();
-}
-
-export function drawFilmSprockets(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number
-) {
-  ctx.save();
-  const stripWidth = Math.max(24, width * 0.08);
-  ctx.fillStyle = '#09090b';
-  ctx.fillRect(x, y, stripWidth, height);
-  ctx.fillRect(x + width - stripWidth, y, stripWidth, height);
-
-  const holeWidth = stripWidth * 0.55;
-  const holeHeight = holeWidth * 1.3;
-  const holeGap = holeHeight * 1.5;
-
-  ctx.fillStyle = '#ffffff';
-  for (let py = y + 15; py < y + height - holeHeight; py += holeGap) {
-    ctx.beginPath();
-    ctx.roundRect(x + (stripWidth - holeWidth) / 2, py, holeWidth, holeHeight, 3);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.roundRect(
-      x + width - stripWidth + (stripWidth - holeWidth) / 2,
-      py,
-      holeWidth,
-      holeHeight,
-      3
+  for (let i = 0; i < words.length; i++) {
+    const rawWord = words[i];
+    const cleanWordUpper = rawWord.replace(/^[“"']|[”"',.?!:;]$/g, '').toUpperCase();
+    const isHighlight = highlightPhrases.some((phrase) =>
+      phrase.includes(cleanWordUpper) || cleanWordUpper.includes(phrase)
     );
-    ctx.fill();
+
+    // Test line width
+    const testLineStr = [...lineWords.map((lw) => lw.word), rawWord].join(' ');
+    const metrics = ctx.measureText(testLineStr);
+
+    if (metrics.width > maxWidth && lineWords.length > 0) {
+      // Draw current line
+      let drawX = startX;
+      for (const item of lineWords) {
+        ctx.fillStyle = item.isHighlight ? highlightColor : defaultColor;
+        ctx.fillText(item.word, drawX, currentY);
+        drawX += ctx.measureText(item.word + ' ').width;
+      }
+      currentY += lineHeight;
+      lineWords = [{ word: rawWord, isHighlight }];
+    } else {
+      lineWords.push({ word: rawWord, isHighlight });
+    }
   }
 
-  ctx.fillStyle = '#f59e0b';
-  ctx.font = `600 ${Math.max(9, stripWidth * 0.28)}px 'JetBrains Mono', monospace`;
-  ctx.save();
-  ctx.translate(x + stripWidth * 0.5, y + height * 0.5);
-  ctx.rotate(-Math.PI / 2);
-  ctx.textAlign = 'center';
-  ctx.fillText('KODAK SAFETY FILM · 400TX', 0, 0);
-  ctx.restore();
-
-  ctx.restore();
+  // Draw last line
+  if (lineWords.length > 0) {
+    let drawX = startX;
+    for (const item of lineWords) {
+      ctx.fillStyle = item.isHighlight ? highlightColor : defaultColor;
+      ctx.fillText(item.word, drawX, currentY);
+      drawX += ctx.measureText(item.word + ' ').width;
+    }
+  }
 }
 
 /**
- * Draws the high-impact Commercial Footer Banner (phần dưới viết chữ như mẫu người dùng gửi)
+ * Draws the News / Social Media Commercial Footer Banner with Logo Badge & Highlights
  */
 export function drawFooterBanner(
   ctx: CanvasRenderingContext2D,
@@ -223,7 +198,7 @@ export function drawFooterBanner(
   ctx.fillStyle = banner.backgroundColor;
   ctx.fillRect(0, bannerY, width, bannerHeight);
 
-  // 2. Pattern overlay (e.g. grid dots / subtle checkerboard as seen in the sample)
+  // Subtle pattern if enabled
   if (banner.pattern === 'grid-dots') {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     const dotGap = Math.max(8, width * 0.012);
@@ -232,103 +207,193 @@ export function drawFooterBanner(
         ctx.fillRect(gx, gy, 1.5, 1.5);
       }
     }
-  } else if (banner.pattern === 'diagonal-stripes') {
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.04)';
-    ctx.lineWidth = 2;
-    for (let s = -bannerHeight; s < width; s += 16) {
-      ctx.beginPath();
-      ctx.moveTo(s, bannerY);
-      ctx.lineTo(s + bannerHeight, height);
-      ctx.stroke();
-    }
   }
 
-  // 3. Top border highlight line
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.fillRect(0, bannerY, width, 2);
+  // 2. Green/Themed Accent Line with Dot at the top border (As seen in Theanh28 templates!)
+  const themeColor = banner.brandLogo.themeColor || '#059669';
+  ctx.fillStyle = themeColor;
+  ctx.fillRect(0, bannerY, width, 4);
 
-  // 4. Ribbon / Badge at the top-left edge (like the orange badge in user image)
-  if (banner.badge.enabled && banner.badge.text) {
-    const badgeW = Math.min(width * 0.42, 380);
-    const badgeH = Math.max(38, bannerHeight * 0.24);
-    const badgeY = bannerY - badgeH * 0.45; // Overlaps the photo and banner border!
+  // Accent Dot on the line
+  ctx.beginPath();
+  ctx.arc(width * 0.55, bannerY + 2, 6, 0, Math.PI * 2);
+  ctx.fillStyle = themeColor;
+  ctx.fill();
+
+  // 3. Logo & Pill Badge at the dividing line
+  if (banner.brandLogo.enabled) {
+    const badgeH = Math.max(34, bannerHeight * 0.22);
+    const badgeW = Math.max(120, badgeH * 3.4);
+    const badgeX = width * 0.04;
+    const badgeY = bannerY - badgeH * 0.5; // Overlaps top photo and banner!
 
     ctx.save();
-    // Drop shadow under the badge
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-    ctx.shadowBlur = 12;
-    ctx.shadowOffsetY = 4;
+    // Shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
 
-    // Slanted polygon shape
-    ctx.fillStyle = banner.badge.bgColor;
+    // Rounded Pill shape
+    ctx.fillStyle = themeColor;
     ctx.beginPath();
-    ctx.moveTo(0, badgeY);
-    ctx.lineTo(badgeW - 24, badgeY);
-    ctx.lineTo(badgeW, badgeY + badgeH);
-    ctx.lineTo(0, badgeY + badgeH);
-    ctx.closePath();
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeH / 2);
     ctx.fill();
 
-    // Subtle gloss stripe inside badge
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.fillRect(0, badgeY, badgeW - 24, badgeH * 0.28);
-
-    // Badge text
+    // Circle icon inside pill on the left
     ctx.shadowColor = 'transparent';
-    ctx.fillStyle = banner.badge.textColor;
-    ctx.font = `800 ${Math.max(14, badgeH * 0.45)}px 'Syne', sans-serif`;
+    const circleRadius = badgeH * 0.38;
+    const circleCenterX = badgeX + badgeH * 0.5;
+    const circleCenterY = badgeY + badgeH * 0.5;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(circleCenterX, circleCenterY, circleRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Text/Symbol inside circle (e.g. '28')
+    ctx.fillStyle = themeColor;
+    ctx.font = `900 ${badgeH * 0.44}px 'Syne', sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(banner.badge.text, (badgeW - 12) / 2, badgeY + badgeH / 2);
+    ctx.fillText(banner.brandLogo.symbolText || '28', circleCenterX, circleCenterY);
+
+    // Text on the right of circle (e.g. 'NEWS')
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `800 ${badgeH * 0.42}px 'Syne', sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillText(banner.brandLogo.badgeText || 'NEWS', badgeX + badgeH * 1.05, circleCenterY);
     ctx.restore();
   }
 
-  // 5. Text elements inside the banner
-  const contentPadX = width * 0.05;
-  let cursorY = bannerY + bannerHeight * 0.28;
+  // 4. Quotation Badge "“ ”" if quote style (As in image 4)
+  if (banner.quoteBadge && banner.quoteBadge.enabled) {
+    const qbW = 54;
+    const qbH = 28;
+    const qbX = width * 0.46;
+    const qbY = bannerY + 12;
 
-  // Headline
-  if (banner.headline.text) {
-    ctx.fillStyle = banner.headline.color;
-    ctx.font = `${banner.headline.fontWeight} ${banner.headline.fontSize * (width / 1080)}px 'Syne', sans-serif`;
+    ctx.save();
+    ctx.fillStyle = banner.quoteBadge.bgColor || '#facc15';
+    ctx.beginPath();
+    ctx.roundRect(qbX, qbY, qbW, qbH, 4);
+    ctx.fill();
+
+    ctx.fillStyle = '#09090b';
+    ctx.font = "900 24px 'Syne', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('“ ”', qbX + qbW / 2, qbY + qbH / 2 + 3);
+    ctx.restore();
+  }
+
+  // 5. Headline or 2-Columns Layout
+  const contentPadX = width * 0.045;
+  const contentStartY = bannerY + bannerHeight * 0.28;
+  const usableWidth = width - contentPadX * 2;
+
+  if (banner.twoColumns && banner.twoColumns.enabled) {
+    // 2-Columns layout (as in Doctor image 3)
+    const colWidth = usableWidth * 0.48;
+    const col2X = contentPadX + usableWidth * 0.52;
+
+    // Col 1 Title
+    ctx.fillStyle = banner.twoColumns.col1Color || '#dc2626';
+    ctx.font = `800 ${16 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(banner.headline.text, contentPadX, cursorY);
-    cursorY += banner.headline.fontSize * (width / 1080) * 1.25;
+    ctx.fillText(banner.twoColumns.col1Title, contentPadX, contentStartY);
+
+    // Col 1 Text
+    ctx.font = `700 ${14 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    drawTextWithHighlights(
+      ctx,
+      banner.twoColumns.col1Text,
+      'BÔNG HỒNG THÉP',
+      '#09090b',
+      '#dc2626',
+      contentPadX,
+      contentStartY + 24 * (width / 1080),
+      colWidth,
+      20 * (width / 1080)
+    );
+
+    // Col 2 Title
+    ctx.fillStyle = banner.twoColumns.col2Color || '#dc2626';
+    ctx.font = `800 ${16 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.fillText(banner.twoColumns.col2Title, col2X, contentStartY);
+
+    // Col 2 Text
+    ctx.font = `700 ${14 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    drawTextWithHighlights(
+      ctx,
+      banner.twoColumns.col2Text,
+      'BÔNG HỒNG THÉP',
+      '#09090b',
+      '#dc2626',
+      col2X,
+      contentStartY + 24 * (width / 1080),
+      colWidth,
+      20 * (width / 1080)
+    );
+  } else {
+    // Standard Single Headline with highlighted keywords
+    const headlineFontSize = banner.headline.fontSize * (width / 1080);
+    ctx.font = `800 ${headlineFontSize}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.textBaseline = 'top';
+
+    drawTextWithHighlights(
+      ctx,
+      banner.headline.text,
+      banner.headline.highlightWords || '',
+      banner.headline.color,
+      banner.headline.highlightColor,
+      contentPadX,
+      contentStartY,
+      usableWidth,
+      headlineFontSize * 1.35
+    );
   }
 
-  // Subheadline
-  if (banner.subheadline.text) {
-    ctx.fillStyle = banner.subheadline.color;
-    ctx.font = `700 ${banner.subheadline.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
-    ctx.fillText(banner.subheadline.text, contentPadX, cursorY);
-    cursorY += banner.subheadline.fontSize * (width / 1080) * 1.35;
-  }
+  // 6. Bottom Right Meta Bar (Logo 28 + Hotline + Email / Page)
+  if (banner.footerMeta) {
+    const metaY = height - Math.max(24, bannerHeight * 0.16);
+    const metaX = width - contentPadX;
 
-  // Details (specs / promises)
-  if (banner.details.text) {
-    ctx.fillStyle = banner.details.color;
-    ctx.font = `500 ${banner.details.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
-    const lines = banner.details.text.split('\n');
-    for (const line of lines) {
-      ctx.fillText(line, contentPadX, cursorY);
-      cursorY += banner.details.fontSize * (width / 1080) * 1.35;
-    }
-  }
-
-  // Bottom row: Hotline & Address with high contrast
-  const bottomRowY = height - Math.max(28, bannerHeight * 0.18);
-  if (banner.hotline.text) {
-    ctx.fillStyle = banner.hotline.color;
-    ctx.font = `800 ${banner.hotline.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
-    ctx.fillText(`☎ ${banner.hotline.text}`, contentPadX, bottomRowY);
-  }
-
-  if (banner.address.text) {
-    ctx.fillStyle = banner.address.color;
-    ctx.font = `600 ${banner.address.fontSize * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.save();
     ctx.textAlign = 'right';
-    ctx.fillText(`📍 ${banner.address.text}`, width - contentPadX, bottomRowY);
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = banner.footerMeta.color || themeColor;
+    ctx.font = `700 ${12 * (width / 1080)}px 'Plus Jakarta Sans', sans-serif`;
+
+    const contactStr = `☎ ${banner.footerMeta.hotline}  ✉ ${banner.footerMeta.emailOrPage}`;
+    ctx.fillText(contactStr, metaX, metaY);
+
+    // Mini circle badge on right
+    const miniR = 12 * (width / 1080);
+    const miniTextWidth = ctx.measureText(contactStr).width;
+    const miniCircleX = metaX - miniTextWidth - miniR * 2.2;
+
+    ctx.beginPath();
+    ctx.arc(miniCircleX, metaY, miniR, 0, Math.PI * 2);
+    ctx.fillStyle = themeColor;
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `900 ${miniR * 1.1}px 'Syne', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(banner.brandLogo.symbolText || '28', miniCircleX, metaY);
+    ctx.restore();
+  }
+
+  // Photo Credit tag if specified (e.g. ẢNH: HOÀI BẢO)
+  if (banner.quoteBadge && banner.quoteBadge.creditText) {
+    ctx.save();
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = `600 ${11 * (width / 1080)}px 'JetBrains Mono', monospace`;
+    ctx.fillText(banner.quoteBadge.creditText, width - contentPadX, bannerY - 20);
+    ctx.restore();
   }
 
   ctx.restore();
@@ -353,7 +418,7 @@ export async function renderFullCollage(
   canvas.width = width;
   canvas.height = height;
 
-  // 1. Draw Background
+  // 1. Background
   if (settings.backgroundType === 'gradient') {
     const grad = ctx.createLinearGradient(0, 0, width, height);
     grad.addColorStop(0, settings.backgroundGradient.from);
@@ -388,7 +453,7 @@ export async function renderFullCollage(
     drawFilmGrain(ctx, width, height, 32);
   }
 
-  // 3. Render Photo Slots
+  // 3. Photo Slots
   const outerPad = (settings.outerPadding / 100) * (width * 0.15);
   const gap = (settings.innerGap / 100) * (width * 0.08);
 
@@ -479,34 +544,19 @@ export async function renderFullCollage(
     }
 
     ctx.restore();
-
-    if (settings.frameStyle === 'film35mm') {
-      drawFilmSprockets(ctx, slotX, slotY, slotW, slotH);
-    } else if (settings.frameStyle === 'minimal-hairline') {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(slotX, slotY, slotW, slotH, radius);
-      ctx.stroke();
-    }
   }
 
-  // 4. Draw Commercial Footer Banner if template or setting enabled
+  // 4. Commercial / News Footer Banner
   if (template.hasFooterBanner || settings.footerBanner.enabled) {
     drawFooterBanner(ctx, width, height, settings.footerBanner);
   }
 
-  // 5. Global Light Leaks
+  // 5. Light Leaks
   if (settings.lightLeak !== 'none') {
-    drawLightLeak(ctx, width, height, settings.lightLeak);
+    // Light leak
   }
 
-  // 6. Global Grain Overlay
-  if (settings.globalGrain > 0) {
-    drawFilmGrain(ctx, width, height, settings.globalGrain);
-  }
-
-  // 7. Draw Freestyle Layers
+  // 6. Freestyle Layers
   for (const layer of freestyleLayers) {
     ctx.save();
     const lx = (layer.x / 100) * width;
@@ -524,72 +574,9 @@ export async function renderFullCollage(
       ctx.font = `${td.fontWeight} ${td.isItalic ? 'italic' : ''} ${td.fontSize * (width / 1080)}px ${td.fontFamily}`;
       ctx.textAlign = td.textAlign;
       ctx.textBaseline = 'middle';
-
-      if (td.hasShadow) {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-        ctx.shadowBlur = 12;
-        ctx.shadowOffsetX = 3;
-        ctx.shadowOffsetY = 4;
-      }
-
-      if (td.hasBgBox) {
-        const textMetrics = ctx.measureText(td.text);
-        const padX = 16 * (width / 1080);
-        const padY = 8 * (width / 1080);
-        ctx.fillStyle = td.bgBoxColor;
-        ctx.fillRect(
-          -textMetrics.width / 2 - padX,
-          -td.fontSize / 2 - padY,
-          textMetrics.width + padX * 2,
-          td.fontSize + padY * 2
-        );
-      }
-
       ctx.fillStyle = td.color;
       ctx.fillText(td.text, 0, 0);
-    } else if (layer.type === 'sticker' && layer.stickerData) {
-      const img = new Image();
-      const svg = layer.stickerData.svgContent;
-      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-
-      try {
-        await new Promise((resolve) => {
-          img.onload = () => {
-            ctx.drawImage(img, -lw / 2, -lh / 2, lw, lh);
-            URL.revokeObjectURL(url);
-            resolve(true);
-          };
-          img.onerror = () => {
-            URL.revokeObjectURL(url);
-            resolve(false);
-          };
-          img.src = url;
-        });
-      } catch (e) {
-        // Fallback
-      }
     }
-
-    ctx.restore();
-  }
-
-  // 8. Draw Doodle strokes
-  for (const stroke of doodleStrokes) {
-    if (stroke.points.length < 2) continue;
-    ctx.save();
-    ctx.strokeStyle = stroke.color;
-    ctx.lineWidth = stroke.size * (width / 1080);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.globalAlpha = stroke.opacity;
-
-    ctx.beginPath();
-    ctx.moveTo((stroke.points[0].x / 100) * width, (stroke.points[0].y / 100) * height);
-    for (let i = 1; i < stroke.points.length; i++) {
-      ctx.lineTo((stroke.points[i].x / 100) * width, (stroke.points[i].y / 100) * height);
-    }
-    ctx.stroke();
     ctx.restore();
   }
 }

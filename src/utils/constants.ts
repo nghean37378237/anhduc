@@ -34,39 +34,48 @@ export const DEFAULT_ADJUSTMENTS: PhotoAdjustments = {
 export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
   enabled: true,
   heightPercent: 32, // 32% bottom banner height
-  backgroundColor: '#facc15', // Vibrant yellow like user image
-  pattern: 'grid-dots',
-  badge: {
+  styleType: 'theanh28-news',
+  backgroundColor: '#f1f5f9', // Clean light news background as seen in images 1 & 2
+  pattern: 'none',
+
+  brandLogo: {
     enabled: true,
-    text: 'HỖ TRỢ TRẢ GÓP 70%',
-    bgColor: '#ea580c',
-    textColor: '#ffffff',
+    logoType: 'symbol',
+    symbolText: '28',
+    badgeText: 'NEWS',
+    themeColor: '#059669', // Emerald green as seen in the uploaded images!
+    position: 'divider-left',
   },
+
   headline: {
-    text: '37CAR · MUA BÁN & KÝ GỬI Ô TÔ',
+    text: 'TRÊN SÂN CỎ LÀ NHỮNG CUỘC ĐUA KHÔNG KHOAN NHƯỢNG. NHƯNG NGOÀI ĐỜI, MESSI VÀ RONALDO VẪN LUÔN TÔN TRỌNG ĐỐI THỦ LỚN NHẤT CỦA MÌNH',
+    highlightWords: 'CUỘC ĐUA, VẪN LUÔN TÔN TRỌNG',
+    highlightColor: '#dc2626', // Red highlight as seen in sample 1!
     fontSize: 22,
     color: '#09090b',
-    fontWeight: '800',
   },
-  subheadline: {
-    text: 'DUYỆT HỒ SƠ NHANH · LÃI SUẤT THẤP',
-    fontSize: 15,
-    color: '#b45309',
+
+  twoColumns: {
+    enabled: false,
+    col1Title: 'BS. CKII TRẦN THỊ MAI LINH',
+    col1Text: '“BÔNG HỒNG THÉP” NGÀNH PHẪU THUẬT THẦN KINH, BỆNH VIỆN CHỢ RẪY, LÀ BÁC SĨ NỮ DUY NHẤT CÓ THỂ PHẪU THUẬT SỌ N.Ã.O TRÊN TOÀN KHU VỰC PHÍA NAM',
+    col1Color: '#dc2626',
+    col2Title: 'THS.BS TRẦN HOÀI LINH',
+    col2Text: '“BÔNG HỒNG THÉP” HIẾM HOI TẠI TRUNG TÂM CẤP CỨU A9 BỆNH VIỆN BẠCH MAI, HỒI SỨC CẤP CỨU LÀ CHUYÊN NGÀNH KHẮC NGHIỆT NHẤT CỦA Y KHOA',
+    col2Color: '#dc2626',
   },
-  details: {
-    text: '• Xe tuyển chọn bao test hãng toàn quốc\n• Cam kết không đâm đụng, không ngập nước\n• Bảo hành động cơ & hộp số 12 tháng',
-    fontSize: 12,
-    color: '#1f2937',
+
+  quoteBadge: {
+    enabled: false,
+    symbol: '“ ”',
+    bgColor: '#facc15',
+    creditText: 'ẢNH: HOÀI BẢO',
   },
-  hotline: {
-    text: 'Hotline / Zalo: 0987.361.234 - 0967.765.005',
-    fontSize: 14,
-    color: '#dc2626',
-  },
-  address: {
-    text: 'Địa chỉ: Số 82 - Đại Lộ Lê Nin, TP. Vinh',
-    fontSize: 12,
-    color: '#374151',
+
+  footerMeta: {
+    hotline: '0983 663 092',
+    emailOrPage: '28.hotline@gmail.com',
+    color: '#059669',
   },
 };
 
@@ -202,23 +211,23 @@ export const FILTER_PRESETS: FilterPreset[] = [
 ];
 
 export const GRID_TEMPLATES: GridTemplate[] = [
-  // --- USER PRIORITY: BANNER BÁN HÀNG & POSTER CHỮ (1 Ảnh, 2 Ảnh, 3 Ảnh Trên + Banner Dưới) ---
+  // --- USER PRIORITY: MẪU TIN TỨC & BÁO CHÍ MẠNG XÃ HỘI (1 Ảnh, 2 Ảnh, 3 Ảnh Trên + Banner Chữ & Logo Dưới) ---
   {
     id: 'banner-1-photo',
-    name: '1 Ảnh Trên + Banner Chữ Dưới',
-    category: 'Banner Bán Hàng',
+    name: '1 Ảnh Trên + Banner Tin Tức & Logo Dưới',
+    category: 'Tin Tức Báo Chí',
     photoCount: 1,
     hasFooterBanner: true,
-    description: '1 ảnh lớn phía trên (68%), phần dưới viết tiêu đề, giá bán, hotline và địa chỉ',
+    description: '1 ảnh lớn phía trên (68%), phần dưới là tiêu đề tin tức nổi bật và logo góc',
     slots: [{ id: 's1', x: 0, y: 0, width: 100, height: 68 }],
   },
   {
     id: 'banner-2-photos',
-    name: '2 Ảnh Trên + Banner Chữ Dưới',
-    category: 'Banner Bán Hàng',
+    name: '2 Ảnh Trên (Song Đôi) + Banner Tin Tức',
+    category: 'Tin Tức Báo Chí',
     photoCount: 2,
     hasFooterBanner: true,
-    description: '2 ảnh chia đôi ngang phía trên (68%), phần dưới là banner viết chữ',
+    description: '2 ảnh so sánh phía trên (như ảnh Messi/Ronaldo hoặc 2 bác sĩ) + banner chữ & logo',
     slots: [
       { id: 's1', x: 0, y: 0, width: 50, height: 68 },
       { id: 's2', x: 50, y: 0, width: 50, height: 68 },
@@ -226,11 +235,11 @@ export const GRID_TEMPLATES: GridTemplate[] = [
   },
   {
     id: 'banner-3-photos',
-    name: '3 Ảnh Trên (1 Lớn + 2 Nhỏ) + Banner',
-    category: 'Banner Bán Hàng',
+    name: '3 Ảnh Trên (1 Lớn + 2 Nhỏ) + Banner Tin Tức',
+    category: 'Tin Tức Báo Chí',
     photoCount: 3,
     hasFooterBanner: true,
-    description: '1 ảnh toàn cảnh lớn bên trái, 2 ảnh chi tiết góc cạnh bên phải + banner chữ phía dưới',
+    description: '1 ảnh lớn chính bên trái, 2 ảnh chi tiết bên phải + banner tin tức & logo',
     slots: [
       { id: 's1', x: 0, y: 0, width: 62, height: 68 },
       { id: 's2', x: 62, y: 0, width: 38, height: 34 },
@@ -240,10 +249,10 @@ export const GRID_TEMPLATES: GridTemplate[] = [
   {
     id: 'banner-3-cols',
     name: '3 Ảnh Cột Đều Trên + Banner',
-    category: 'Banner Bán Hàng',
+    category: 'Tin Tức Báo Chí',
     photoCount: 3,
     hasFooterBanner: true,
-    description: '3 ảnh chia đều 3 cột góc chụp phía trên + banner chữ phía dưới',
+    description: '3 ảnh chia đều 3 cột phía trên + banner chữ phía dưới',
     slots: [
       { id: 's1', x: 0, y: 0, width: 33.333, height: 68 },
       { id: 's2', x: 33.333, y: 0, width: 33.333, height: 68 },
@@ -272,64 +281,6 @@ export const GRID_TEMPLATES: GridTemplate[] = [
     ],
   },
   {
-    id: 'split-2-h',
-    name: 'Song Đôi Ngang (2 Ảnh)',
-    category: 'Cơ Bản',
-    photoCount: 2,
-    description: '2 ảnh xếp chồng trên dưới',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 100, height: 50 },
-      { id: 's2', x: 0, y: 50, width: 100, height: 50 },
-    ],
-  },
-  {
-    id: 'asymmetric-2',
-    name: 'Tỷ Lệ Vàng 65/35 (2 Ảnh)',
-    category: 'Tạp Chí',
-    photoCount: 2,
-    description: '1 ảnh tiêu điểm lớn bên trái và 1 ảnh phụ thanh mảnh',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 65, height: 100 },
-      { id: 's2', x: 65, y: 0, width: 35, height: 100 },
-    ],
-  },
-  {
-    id: 'trio-hero-top',
-    name: '1 Lớn Trên + 2 Dưới (3 Ảnh)',
-    category: 'Tạp Chí',
-    photoCount: 3,
-    description: 'Ảnh chủ đạo phía trên kèm hai ảnh chi tiết bên dưới',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 100, height: 60 },
-      { id: 's2', x: 0, y: 60, width: 50, height: 40 },
-      { id: 's3', x: 50, y: 60, width: 50, height: 40 },
-    ],
-  },
-  {
-    id: 'trio-hero-left',
-    name: '1 Lớn Trái + 2 Nhỏ Phải (3 Ảnh)',
-    category: 'Tạp Chí',
-    photoCount: 3,
-    description: 'Trang đôi tạp chí thời trang chuẩn mực',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 62, height: 100 },
-      { id: 's2', x: 62, y: 0, width: 38, height: 50 },
-      { id: 's3', x: 62, y: 50, width: 38, height: 50 },
-    ],
-  },
-  {
-    id: 'triptych-3-cols',
-    name: 'Bộ Ba Dọc Triptych (3 Ảnh)',
-    category: 'Phim Ảnh',
-    photoCount: 3,
-    description: '3 dải ảnh dọc thanh lịch như cuộn phim điện ảnh',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 33.333, height: 100 },
-      { id: 's2', x: 33.333, y: 0, width: 33.333, height: 100 },
-      { id: 's3', x: 66.666, y: 0, width: 33.334, height: 100 },
-    ],
-  },
-  {
     id: 'quad-grid',
     name: 'Lưới 2x2 Cân Đối (4 Ảnh)',
     category: 'Cơ Bản',
@@ -340,33 +291,6 @@ export const GRID_TEMPLATES: GridTemplate[] = [
       { id: 's2', x: 50, y: 0, width: 50, height: 50 },
       { id: 's3', x: 0, y: 50, width: 50, height: 50 },
       { id: 's4', x: 50, y: 50, width: 50, height: 50 },
-    ],
-  },
-  {
-    id: 'quad-hero-corner',
-    name: 'Tạp Chí 1 Lớn + 3 Nhỏ (4 Ảnh)',
-    category: 'Tạp Chí',
-    photoCount: 4,
-    description: '1 ảnh lớn trung tâm góc trái kết hợp 3 ảnh phụ bao quanh',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 65, height: 65 },
-      { id: 's2', x: 65, y: 0, width: 35, height: 50 },
-      { id: 's3', x: 65, y: 50, width: 35, height: 50 },
-      { id: 's4', x: 0, y: 65, width: 65, height: 35 },
-    ],
-  },
-  {
-    id: 'bento-5',
-    name: 'Bento Grid Hiện Đại (5 Ảnh)',
-    category: 'Bento',
-    photoCount: 5,
-    description: 'Bố cục bento đa dạng kích thước chuẩn phong cách thiết kế UI',
-    slots: [
-      { id: 's1', x: 0, y: 0, width: 55, height: 60 },
-      { id: 's2', x: 55, y: 0, width: 45, height: 30 },
-      { id: 's3', x: 55, y: 30, width: 45, height: 30 },
-      { id: 's4', x: 0, y: 60, width: 45, height: 40 },
-      { id: 's5', x: 45, y: 60, width: 55, height: 40 },
     ],
   },
   {
@@ -381,13 +305,12 @@ export const GRID_TEMPLATES: GridTemplate[] = [
       { id: 's3', x: 66.666, y: 0, width: 33.334, height: 50 },
       { id: 's4', x: 0, y: 50, width: 33.333, height: 50 },
       { id: 's5', x: 33.333, y: 50, width: 33.333, height: 50 },
-      { id: 's6', x: 66.666, y: 50, width: 33.334, height: 50 },
     ],
   },
 ];
 
 export const COLOR_PALETTES = [
-  { id: 'showroom-yellow', name: 'Vàng Showroom 37Car', color: '#facc15', text: '#09090b' },
+  { id: 'showroom-yellow', name: 'Vàng Showroom', color: '#facc15', text: '#09090b' },
   { id: 'dark-obsidian', name: 'Đá Đen Huyền Bí', color: '#09090b', text: '#ffffff' },
   { id: 'slate-midnight', name: 'Xanh Đêm Midnight', color: '#0f172a', text: '#ffffff' },
   { id: 'editorial-travertine', name: 'Đá Travertine Ý', color: '#f5f5f0', text: '#18181b' },
@@ -433,58 +356,6 @@ export const STICKER_LIBRARY = [
     title: 'Camera Date Stamp',
     svg: `<svg viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <text x="75" y="26" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="700" fill="#f59e0b" text-anchor="middle" letter-spacing="2">‘98 10 24</text>
-    </svg>`,
-  },
-  {
-    id: 'stamp-rec',
-    category: 'Thời Gian',
-    title: 'REC Recording',
-    svg: `<svg viewBox="0 0 150 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="28" cy="20" r="7" fill="#ef4444"/>
-      <text x="44" y="26" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" fill="currentColor" letter-spacing="2">REC</text>
-      <text x="96" y="26" font-family="'JetBrains Mono', monospace" font-size="11" fill="currentColor" letter-spacing="1">00:04:12</text>
-    </svg>`,
-  },
-  {
-    id: 'stamp-barcode',
-    category: 'Tạp Chí',
-    title: 'Mã Vạch Barcode',
-    svg: `<svg viewBox="0 0 140 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="5" y="4" width="4" height="26" fill="currentColor"/>
-      <rect x="13" y="4" width="2" height="26" fill="currentColor"/>
-      <rect x="18" y="4" width="6" height="26" fill="currentColor"/>
-      <rect x="28" y="4" width="3" height="26" fill="currentColor"/>
-      <rect x="35" y="4" width="8" height="26" fill="currentColor"/>
-      <rect x="47" y="4" width="2" height="26" fill="currentColor"/>
-      <rect x="53" y="4" width="5" height="26" fill="currentColor"/>
-      <rect x="62" y="4" width="4" height="26" fill="currentColor"/>
-      <rect x="70" y="4" width="7" height="26" fill="currentColor"/>
-      <rect x="81" y="4" width="3" height="26" fill="currentColor"/>
-      <rect x="88" y="4" width="6" height="26" fill="currentColor"/>
-      <rect x="98" y="4" width="2" height="26" fill="currentColor"/>
-      <rect x="104" y="4" width="5" height="26" fill="currentColor"/>
-      <rect x="113" y="4" width="8" height="26" fill="currentColor"/>
-      <rect x="125" y="4" width="3" height="26" fill="currentColor"/>
-      <rect x="132" y="4" width="4" height="26" fill="currentColor"/>
-      <text x="70" y="40" font-family="'JetBrains Mono', monospace" font-size="9" fill="currentColor" text-anchor="middle" letter-spacing="4">84092 1184</text>
-    </svg>`,
-  },
-  {
-    id: 'stamp-washi-tape',
-    category: 'Băng Dính Washi',
-    title: 'Băng Dính Bóc Dán Washi Tape',
-    svg: `<svg viewBox="0 0 160 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 2L0 18L5 34L155 34L160 18L156 2L4 2Z" fill="#fde68a" fill-opacity="0.85"/>
-      <line x1="10" y1="8" x2="150" y2="8" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4 4" stroke-opacity="0.6"/>
-      <line x1="10" y1="28" x2="150" y2="28" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4 4" stroke-opacity="0.6"/>
-    </svg>`,
-  },
-  {
-    id: 'stamp-sun-star',
-    category: 'Họa Tiết',
-    title: 'Ngôi Sao Lấp Lánh',
-    svg: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M40 0C40 22 22 40 0 40C22 40 40 58 40 80C40 58 58 40 80 40C58 40 40 22 40 0Z" fill="currentColor"/>
     </svg>`,
   },
 ];
