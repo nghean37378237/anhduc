@@ -102,7 +102,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       highlightStyle: 'box' as 'color' | 'box',
       fontFamily: 'Montserrat',
       hotline: '0987 361 234',
-      email: 'Showroom 37Car Nghệ An',
+      email: 'Showroom Ô Tô Toàn Quốc',
       twoCols: false,
       quote: false,
     },
@@ -120,14 +120,14 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       highlightStyle: 'color' as 'color' | 'box',
       fontFamily: 'Montserrat',
       hotline: '0983 663 092',
-      email: '28.hotline@gmail.com',
+      email: 'hotline.tintuc@gmail.com',
       twoCols: false,
       quote: false,
     },
     {
       name: 'Mẫu 4: So Sánh 2 Cột (2 Bác Sĩ / 2 Xe)',
-      symbol: '37',
-      badge: 'CAR',
+      symbol: '24H',
+      badge: 'TIN NÓNG',
       color: '#0284c7',
       bg: '#ffffff',
       style: 'two-columns' as BannerStyleType,
@@ -137,7 +137,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       highlightStyle: 'color' as 'color' | 'box',
       fontFamily: 'Be Vietnam Pro',
       hotline: '0983 663 092',
-      email: '28.hotline@gmail.com',
+      email: 'hotline.tintuc@gmail.com',
       twoCols: true,
       quote: false,
     },
@@ -685,11 +685,11 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                 Gợi ý nhanh:
               </span>
               {[
-                { symbol: '24H', badge: 'NGHỆ AN', isSpecial: true },
-                { symbol: '37', badge: 'CAR' },
-                { symbol: '28', badge: 'NEWS' },
-                { symbol: 'VIP', badge: 'AUTO' },
+                { symbol: '24H', badge: 'TIN TỨC', isSpecial: true },
+                { symbol: '24H', badge: 'NGHỆ AN' },
                 { symbol: 'HOT', badge: 'TIN NÓNG' },
+                { symbol: 'VIP', badge: 'SHOWROOM' },
+                { symbol: 'AUTO', badge: 'XE ĐẸP' },
               ].map((sug, i) => (
                 <button
                   key={i}
@@ -718,6 +718,49 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
                   [{sug.symbol}] [{sug.badge}]
                 </button>
               ))}
+            </div>
+
+            {/* Vị trí huy hiệu 24H: Căn trái hoặc Căn giữa trang */}
+            <div className="flex items-center justify-between pt-1">
+              <span className={`text-[11px] font-medium ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+                Vị trí huy hiệu {banner.brandLogo.symbolText || '24H'}:
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onUpdateBanner({
+                      brandLogo: { ...banner.brandLogo, position: 'divider-left' },
+                    })
+                  }
+                  className={`px-2.5 py-1 text-[11px] rounded-md font-bold border transition-all ${
+                    banner.brandLogo.position !== 'divider-center'
+                      ? 'bg-amber-400 text-black border-amber-400 shadow-2xs font-black'
+                      : isLight
+                      ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      : 'bg-neutral-900 text-neutral-300 border-neutral-800'
+                  }`}
+                >
+                  Bên Trái
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onUpdateBanner({
+                      brandLogo: { ...banner.brandLogo, position: 'divider-center' },
+                    })
+                  }
+                  className={`px-2.5 py-1 text-[11px] rounded-md font-bold border transition-all ${
+                    banner.brandLogo.position === 'divider-center'
+                      ? 'bg-amber-400 text-black border-amber-400 shadow-2xs font-black'
+                      : isLight
+                      ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      : 'bg-neutral-900 text-neutral-300 border-neutral-800'
+                  }`}
+                >
+                  Căn Giữa Trang
+                </button>
+              </div>
             </div>
 
             {/* Custom Logo Image Upload or Reset */}

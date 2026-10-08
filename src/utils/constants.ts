@@ -74,7 +74,7 @@ export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
     enabled: false,
     symbol: '“ ”',
     bgColor: '#ea580c',
-    creditText: '37CAR AUTO',
+    creditText: '',
   },
 
   footerMeta: {

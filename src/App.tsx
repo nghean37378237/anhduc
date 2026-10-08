@@ -524,6 +524,7 @@ export default function App() {
               onUpdateSlotAdjustments={handleUpdateSlotAdjustments}
               onUpdateAllSlotsAdjustments={handleUpdateAllSlotsAdjustments}
               onResetAdjustments={handleResetAdjustments}
+              theme={appTheme}
             />
           )}
 
@@ -531,6 +532,7 @@ export default function App() {
             <BackgroundPanel
               settings={settings}
               onUpdateSettings={(up) => setSettings((s) => ({ ...s, ...up }))}
+              theme={appTheme}
             />
           )}
 
@@ -544,7 +546,7 @@ export default function App() {
           )}
 
           {activeTab === 'stickers' && (
-            <StickerPanel onAddSticker={handleAddSticker} />
+            <StickerPanel onAddSticker={handleAddSticker} theme={appTheme} />
           )}
 
           {activeTab === 'ai' && (

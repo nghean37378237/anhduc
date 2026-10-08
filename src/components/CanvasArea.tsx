@@ -405,7 +405,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                 height: `${bannerHeightPct}%`,
                 backgroundColor: banner.backgroundColor,
               }}
-              className="relative w-full overflow-visible flex flex-col justify-between p-3 sm:p-5 select-none cursor-pointer group transition-all"
+              className="relative z-20 w-full overflow-visible flex flex-col justify-between p-3 sm:p-5 select-none cursor-pointer group transition-all"
             >
               {/* Themed Accent Line with Dot at the top border */}
               <div
@@ -424,10 +424,14 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   style={{
                     backgroundColor: themeColor,
                   }}
-                  className="absolute -top-4 sm:-top-5 left-4 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full shadow-lg flex items-center gap-1.5 sm:gap-2 z-20 border-2 border-white max-w-[85%]"
+                  className={`absolute -top-4 sm:-top-5.5 ${
+                    banner.brandLogo.position === 'divider-center'
+                      ? 'left-1/2 -translate-x-1/2'
+                      : 'left-4'
+                  } px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full shadow-lg flex items-center gap-1.5 sm:gap-2 z-30 border-2 border-white max-w-[90%] select-none`}
                 >
                   {/* Symbol badge: auto-adapts to capsule for "24H", never cut off */}
-                  <div className="min-w-[24px] sm:min-w-[28px] h-5 sm:h-6 px-1.5 rounded-full bg-white flex items-center justify-center shadow-xs shrink-0">
+                  <div className="min-w-[28px] sm:min-w-[34px] h-5.5 sm:h-6.5 px-2 rounded-full bg-white flex items-center justify-center shadow-xs shrink-0">
                     {banner.brandLogo.customImageUrl ? (
                       <img
                         src={banner.brandLogo.customImageUrl}
@@ -437,21 +441,19 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                     ) : (
                       <span
                         style={{ color: themeColor }}
-                        className={`${
-                          (banner.brandLogo.symbolText || '').length > 2
-                            ? 'text-[10px] sm:text-xs font-black tracking-tight'
-                            : 'text-xs sm:text-sm font-black'
-                        } font-display whitespace-nowrap leading-none select-none`}
+                        className="text-[11px] sm:text-xs font-black font-display whitespace-nowrap leading-none select-none tracking-normal"
                       >
                         {banner.brandLogo.symbolText || '24H'}
                       </span>
                     )}
                   </div>
 
-                  {/* Badge text (e.g. NGHỆ AN / CAR / NEWS) */}
-                  <span className="text-xs sm:text-sm font-black text-white tracking-wider font-display whitespace-nowrap pr-1 select-none">
-                    {banner.brandLogo.badgeText || 'NGHỆ AN'}
-                  </span>
+                  {/* Badge text (e.g. NGHỆ AN / TIN NÓNG / CAR) */}
+                  {banner.brandLogo.badgeText && (
+                    <span className="text-xs sm:text-sm font-black text-white tracking-wider font-display whitespace-nowrap pr-1 select-none">
+                      {banner.brandLogo.badgeText}
+                    </span>
+                  )}
                 </div>
               )}
 
@@ -469,7 +471,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
 
               {/* Main Headline or 2-Columns */}
               <div
-                className="relative z-10 pt-2 sm:pt-3 transition-transform duration-150 ease-out"
+                className="relative z-10 w-full pt-2 sm:pt-3 transition-transform duration-150 ease-out"
                 style={{
                   transform: `translateY(-${((banner.headline.offsetY || 0) * 0.55).toFixed(1)}px)`,
                 }}
@@ -511,9 +513,9 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                         : undefined,
                       textAlign: banner.headline.textAlign || 'center',
                     }}
-                    className={`font-black tracking-tight leading-snug uppercase font-display ${
+                    className={`font-black tracking-tight leading-snug uppercase font-display w-full ${
                       (banner.headline.textAlign || 'center') === 'center'
-                        ? 'text-center'
+                        ? 'text-center mx-auto'
                         : banner.headline.textAlign === 'right'
                         ? 'text-right'
                         : 'text-left'
@@ -531,7 +533,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   style={{ backgroundColor: themeColor }}
                   className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-black"
                 >
-                  {banner.brandLogo.symbolText || '28'}
+                  {banner.brandLogo.symbolText || '24H'}
                 </div>
 
                 <div

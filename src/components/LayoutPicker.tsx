@@ -221,15 +221,15 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
           Khoảng Cách & Bo Góc Ô Ảnh
         </h4>
 
-        {/* Inner Gap */}
+        {/* Inner Gap - Viền giữa các ảnh to nhỏ */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className={isLight ? 'text-slate-600' : 'text-neutral-400'}>
-              Khoảng cách giữa các ô
+            <span className={isLight ? 'text-slate-600 font-medium' : 'text-neutral-400'}>
+              Độ dày viền giữa các ảnh (To / Nhỏ):
             </span>
             <span
-              className={`font-mono tabular-nums font-bold ${
-                isLight ? 'text-slate-800' : 'text-neutral-300'
+              className={`font-mono tabular-nums font-bold text-xs px-2 py-0.5 rounded ${
+                isLight ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-neutral-800 text-amber-300'
               }`}
             >
               {settings.innerGap}px
@@ -245,6 +245,34 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
               isLight ? 'bg-slate-200' : 'bg-neutral-800'
             }`}
           />
+          <div className="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+            <span className={`text-[10px] font-mono shrink-0 ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
+              Nhanh:
+            </span>
+            {[
+              { label: '0px (Không viền)', val: 0 },
+              { label: '4px (Mảnh)', val: 4 },
+              { label: '8px (Mặc định)', val: 8 },
+              { label: '14px (Dày)', val: 14 },
+              { label: '20px (To)', val: 20 },
+              { label: '28px (Rất to)', val: 28 },
+            ].map((b) => (
+              <button
+                key={b.val}
+                type="button"
+                onClick={() => onUpdateSettings({ innerGap: b.val })}
+                className={`px-2 py-0.5 text-[11px] rounded-md font-bold whitespace-nowrap border transition-all ${
+                  settings.innerGap === b.val
+                    ? 'bg-amber-400 text-black border-amber-400 shadow-xs ring-1 ring-amber-400/50'
+                    : isLight
+                    ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:text-white'
+                }`}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Corner Radius */}
@@ -274,8 +302,8 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
         {/* Border Color */}
         <div className="space-y-1.5 pt-1">
           <div className="flex items-center justify-between text-xs">
-            <span className={isLight ? 'text-slate-600' : 'text-neutral-400'}>
-              Màu viền giữa các ảnh:
+            <span className={isLight ? 'text-slate-600 font-medium' : 'text-neutral-400'}>
+              Màu sắc viền giữa các ảnh (Mặc định màu trắng):
             </span>
             <span className="font-mono text-[10px] font-bold text-amber-600">
               {settings.borderColor || '#ffffff'}
@@ -286,9 +314,11 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
             {[
               { name: 'Trắng (Mặc định)', color: '#ffffff' },
               { name: 'Đen', color: '#000000' },
-              { name: 'Vàng', color: '#facc15' },
-              { name: 'Đỏ', color: '#dc2626' },
-              { name: 'Xám', color: '#e2e8f0' },
+              { name: 'Vàng Showroom', color: '#facc15' },
+              { name: 'Đỏ Nổi Bật', color: '#dc2626' },
+              { name: 'Xám Bạc', color: '#e2e8f0' },
+              { name: 'Xanh Ngọc', color: '#059669' },
+              { name: 'Xanh Dương', color: '#0284c7' },
             ].map((bc) => {
               const isSelected = (settings.borderColor || '#ffffff').toLowerCase() === bc.color.toLowerCase();
               return (
@@ -298,7 +328,7 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
                   onClick={() => onUpdateSettings({ borderColor: bc.color, backgroundColor: bc.color })}
                   className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold border transition-all ${
                     isSelected
-                      ? 'border-amber-500 bg-amber-50 text-amber-950 ring-1 ring-amber-400 shadow-2xs'
+                      ? 'border-amber-500 bg-amber-50 text-amber-950 ring-1 ring-amber-400 shadow-2xs font-bold'
                       : isLight
                       ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
                       : 'border-neutral-800 bg-neutral-900 text-neutral-300 hover:text-white'
@@ -319,7 +349,8 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
                 type="color"
                 value={settings.borderColor || '#ffffff'}
                 onChange={(e) => onUpdateSettings({ borderColor: e.target.value, backgroundColor: e.target.value })}
-                className="w-5 h-5 rounded border border-slate-300 bg-transparent cursor-pointer"
+                className="w-6 h-6 rounded border border-slate-300 bg-transparent cursor-pointer"
+                title="Chọn màu viền bất kỳ"
               />
             </div>
           </div>

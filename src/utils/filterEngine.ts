@@ -329,10 +329,9 @@ export async function drawFooterBanner(
   if (banner.brandLogo.enabled) {
     const badgeH = Math.max(34, bannerHeight * 0.22);
     const badgeY = bannerY - badgeH * 0.5;
-    const badgeX = width * 0.04;
 
-    const symbolText = banner.brandLogo.symbolText || '37';
-    const badgeText = banner.brandLogo.badgeText || 'CAR';
+    const symbolText = banner.brandLogo.symbolText || '24H';
+    const badgeText = banner.brandLogo.badgeText ?? '';
 
     ctx.save();
     // Pre-measure texts to calculate exact auto-fit widths
@@ -351,17 +350,22 @@ export async function drawFooterBanner(
     const symbolCapsuleH = badgeH * 0.76;
     const symbolCapsuleW = Math.max(
       symbolCapsuleH,
-      symbolTextW + badgeH * 0.36
+      symbolTextW + badgeH * 0.42
     );
 
     const padLeft = badgeH * 0.22;
-    const gapBetween = badgeH * 0.22;
-    const padRight = badgeH * 0.38;
+    const gapBetween = badgeText ? badgeH * 0.22 : 0;
+    const padRight = badgeText ? badgeH * 0.38 : badgeH * 0.22;
 
     const badgeW = Math.max(
-      110,
+      70,
       padLeft + symbolCapsuleW + gapBetween + badgeTextW + padRight
     );
+
+    const badgeX =
+      banner.brandLogo.position === 'divider-center'
+        ? (width - badgeW) / 2
+        : width * 0.04;
 
     // Outer pill badge shadow & fill
     ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
@@ -556,7 +560,7 @@ export async function drawFooterBanner(
     ctx.fillStyle = '#ffffff';
     ctx.font = getCanvasFont(miniR * 1.1, '900', false, 'Montserrat');
     ctx.textAlign = 'center';
-    ctx.fillText(banner.brandLogo.symbolText || '37', miniCircleX, metaY);
+    ctx.fillText(banner.brandLogo.symbolText || '24H', miniCircleX, metaY);
     ctx.restore();
   }
 

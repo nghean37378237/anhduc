@@ -119,11 +119,11 @@ export interface FooterBannerConfig {
   brandLogo: {
     enabled: boolean;
     logoType: 'symbol' | 'image';
-    symbolText: string; // e.g. "28", "37", "CAR", "HOT"
+    symbolText: string; // e.g. "24H", "HOT", "TIN", "VIP"
     badgeText: string;  // e.g. "NEWS", "TIN NÓNG", "SHOWROOM"
     customImageUrl?: string;
     themeColor: string; // e.g. "#059669" (emerald), "#dc2626" (red), "#facc15" (yellow)
-    position: 'divider-left' | 'top-left-watermark' | 'bottom-left';
+    position: 'divider-left' | 'divider-center' | 'top-left-watermark' | 'bottom-left';
   };
 
   // Headline with keyword highlighting (e.g. Bôi đỏ từ quan trọng)
