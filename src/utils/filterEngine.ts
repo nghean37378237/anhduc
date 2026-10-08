@@ -180,7 +180,7 @@ function normalizeVietnamese(str: string): string {
 }
 
 /**
- * Draws wrapped text with accurate Vietnamese font support and keyword highlights
+ * Draws wrapped text with accurate Vietnamese font support, keyword highlights, and alignment (left/center/right)
  */
 function drawTextWithHighlights(
   ctx: CanvasRenderingContext2D,
@@ -192,7 +192,8 @@ function drawTextWithHighlights(
   startY: number,
   maxWidth: number,
   lineHeight: number,
-  highlightStyle: 'color' | 'box' = 'color'
+  highlightStyle: 'color' | 'box' = 'color',
+  textAlign: 'left' | 'center' | 'right' = 'left'
 ) {
   ctx.save();
   ctx.textBaseline = 'top';
@@ -209,14 +210,29 @@ function drawTextWithHighlights(
   let currentY = startY;
 
   const renderLine = (items: { word: string; isHighlight: boolean }[], y: number) => {
+    // Measure total width of line to accurately calculate center/right offset
+    let totalLineWidth = 0;
+    for (let j = 0; j < items.length; j++) {
+      totalLineWidth += ctx.measureText(items[j].word).width;
+      if (j < items.length - 1) {
+        totalLineWidth += ctx.measureText(' ').width;
+      }
+    }
+
     let drawX = startX;
+    if (textAlign === 'center') {
+      drawX = startX + Math.max(0, (maxWidth - totalLineWidth) / 2);
+    } else if (textAlign === 'right') {
+      drawX = startX + Math.max(0, maxWidth - totalLineWidth);
+    }
+
     for (const item of items) {
       const wordMetrics = ctx.measureText(item.word);
       const wordWidth = wordMetrics.width;
       const spaceWidth = ctx.measureText(' ').width;
 
       if (item.isHighlight && highlightStyle === 'box') {
-        const padX = 4;
+        const padX = 5;
         const padY = 2;
         ctx.fillStyle = highlightColor;
         ctx.beginPath();
@@ -312,11 +328,42 @@ export async function drawFooterBanner(
   // 3. Logo & Pill Badge at the dividing line
   if (banner.brandLogo.enabled) {
     const badgeH = Math.max(34, bannerHeight * 0.22);
-    const badgeW = Math.max(120, badgeH * 3.4);
-    const badgeX = width * 0.04;
     const badgeY = bannerY - badgeH * 0.5;
+    const badgeX = width * 0.04;
+
+    const symbolText = banner.brandLogo.symbolText || '37';
+    const badgeText = banner.brandLogo.badgeText || 'CAR';
 
     ctx.save();
+    // Pre-measure texts to calculate exact auto-fit widths
+    const symbolFontSize = badgeH * (symbolText.length > 2 ? 0.38 : 0.44);
+    ctx.font = getCanvasFont(symbolFontSize, '900', false, 'Montserrat');
+    const symbolMetrics = ctx.measureText(symbolText);
+    const symbolTextW = symbolMetrics.width;
+
+    const badgeFontSize = badgeH * 0.42;
+    ctx.font = getCanvasFont(badgeFontSize, '800', false, 'Montserrat');
+    const badgeMetrics = ctx.measureText(badgeText);
+    const badgeTextW = badgeMetrics.width;
+
+    // Symbol capsule dimensions:
+    // If length <= 2: circle. If length > 2 (like "24H", "AUTO"): capsule width accommodates text with generous padding
+    const symbolCapsuleH = badgeH * 0.76;
+    const symbolCapsuleW = Math.max(
+      symbolCapsuleH,
+      symbolTextW + badgeH * 0.36
+    );
+
+    const padLeft = badgeH * 0.22;
+    const gapBetween = badgeH * 0.22;
+    const padRight = badgeH * 0.38;
+
+    const badgeW = Math.max(
+      110,
+      padLeft + symbolCapsuleW + gapBetween + badgeTextW + padRight
+    );
+
+    // Outer pill badge shadow & fill
     ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetY = 3;
@@ -327,14 +374,19 @@ export async function drawFooterBanner(
     ctx.fill();
 
     ctx.shadowColor = 'transparent';
-    const circleRadius = badgeH * 0.38;
-    const circleCenterX = badgeX + badgeH * 0.5;
-    const circleCenterY = badgeY + badgeH * 0.5;
+
+    // White symbol capsule / circle
+    const symbolX = badgeX + padLeft;
+    const symbolY = badgeY + (badgeH - symbolCapsuleH) / 2;
+    const symbolRadius = symbolCapsuleH / 2;
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(circleCenterX, circleCenterY, circleRadius, 0, Math.PI * 2);
+    ctx.roundRect(symbolX, symbolY, symbolCapsuleW, symbolCapsuleH, symbolRadius);
     ctx.fill();
+
+    const symbolCenterX = symbolX + symbolCapsuleW / 2;
+    const symbolCenterY = symbolY + symbolCapsuleH / 2;
 
     // Custom Logo Image or Symbol Text
     let drewCustomLogo = false;
@@ -349,14 +401,14 @@ export async function drawFooterBanner(
         });
         ctx.save();
         ctx.beginPath();
-        ctx.arc(circleCenterX, circleCenterY, circleRadius * 0.9, 0, Math.PI * 2);
+        ctx.roundRect(symbolX + 2, symbolY + 2, symbolCapsuleW - 4, symbolCapsuleH - 4, symbolRadius);
         ctx.clip();
         ctx.drawImage(
           logoImg,
-          circleCenterX - circleRadius,
-          circleCenterY - circleRadius,
-          circleRadius * 2,
-          circleRadius * 2
+          symbolCenterX - symbolCapsuleH * 0.45,
+          symbolCenterY - symbolCapsuleH * 0.45,
+          symbolCapsuleH * 0.9,
+          symbolCapsuleH * 0.9
         );
         ctx.restore();
         drewCustomLogo = true;
@@ -366,20 +418,21 @@ export async function drawFooterBanner(
     }
 
     if (!drewCustomLogo) {
-      // Text inside circle (e.g. 37 or 28)
+      // Text inside white capsule (e.g. 24H, 37, AUTO)
       ctx.fillStyle = themeColor;
-      ctx.font = getCanvasFont(badgeH * 0.44, '900', false, 'Montserrat');
+      ctx.font = getCanvasFont(symbolFontSize, '900', false, 'Montserrat');
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(banner.brandLogo.symbolText || '37', circleCenterX, circleCenterY);
+      ctx.fillText(symbolText, symbolCenterX, symbolCenterY);
     }
 
-    // Text on the right of circle (e.g. CAR or NEWS)
+    // Text on the right of capsule (e.g. NGHỆ AN, CAR, NEWS)
+    const badgeTextX = symbolX + symbolCapsuleW + gapBetween;
     ctx.fillStyle = '#ffffff';
-    ctx.font = getCanvasFont(badgeH * 0.42, '800', false, 'Montserrat');
+    ctx.font = getCanvasFont(badgeFontSize, '800', false, 'Montserrat');
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(banner.brandLogo.badgeText || 'CAR', badgeX + badgeH * 1.05, circleCenterY);
+    ctx.fillText(badgeText, badgeTextX, symbolCenterY);
     ctx.restore();
   }
 
@@ -471,7 +524,8 @@ export async function drawFooterBanner(
       contentStartY,
       usableWidth,
       headlineFontSize * 1.35,
-      banner.headline.highlightStyle || 'color'
+      banner.headline.highlightStyle || 'color',
+      banner.headline.textAlign || 'center'
     );
   }
 

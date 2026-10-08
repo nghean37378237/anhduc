@@ -41,8 +41,8 @@ export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
   brandLogo: {
     enabled: true,
     logoType: 'symbol',
-    symbolText: '37',
-    badgeText: 'CAR',
+    symbolText: '24H',
+    badgeText: 'NGHỆ AN',
     themeColor: '#ea580c', // Cam đỏ thể thao nổi bật trên nền vàng
     position: 'divider-left',
   },
@@ -56,6 +56,7 @@ export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
     fontFamily: 'Montserrat',
     highlightStyle: 'color',
     textTransform: 'uppercase',
+    textAlign: 'center',
   },
 
   twoColumns: {

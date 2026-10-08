@@ -385,10 +385,10 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   style={{
                     backgroundColor: themeColor,
                   }}
-                  className="absolute -top-4 sm:-top-5 left-4 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-lg flex items-center gap-2 z-20 border-2 border-white"
+                  className="absolute -top-4 sm:-top-5 left-4 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full shadow-lg flex items-center gap-1.5 sm:gap-2 z-20 border-2 border-white max-w-[85%]"
                 >
-                  {/* Circular symbol badge */}
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white flex items-center justify-center shadow-xs">
+                  {/* Symbol badge: auto-adapts to capsule for "24H", never cut off */}
+                  <div className="min-w-[24px] sm:min-w-[28px] h-5 sm:h-6 px-1.5 rounded-full bg-white flex items-center justify-center shadow-xs shrink-0">
                     {banner.brandLogo.customImageUrl ? (
                       <img
                         src={banner.brandLogo.customImageUrl}
@@ -398,16 +398,20 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                     ) : (
                       <span
                         style={{ color: themeColor }}
-                        className="text-xs sm:text-sm font-black font-display"
+                        className={`${
+                          (banner.brandLogo.symbolText || '').length > 2
+                            ? 'text-[10px] sm:text-xs font-black tracking-tight'
+                            : 'text-xs sm:text-sm font-black'
+                        } font-display whitespace-nowrap leading-none select-none`}
                       >
-                        {banner.brandLogo.symbolText || '28'}
+                        {banner.brandLogo.symbolText || '24H'}
                       </span>
                     )}
                   </div>
 
-                  {/* Badge text (e.g. NEWS) */}
-                  <span className="text-xs sm:text-sm font-black text-white tracking-wider font-display">
-                    {banner.brandLogo.badgeText || 'NEWS'}
+                  {/* Badge text (e.g. NGHỆ AN / CAR / NEWS) */}
+                  <span className="text-xs sm:text-sm font-black text-white tracking-wider font-display whitespace-nowrap pr-1 select-none">
+                    {banner.brandLogo.badgeText || 'NGHỆ AN'}
                   </span>
                 </div>
               )}
@@ -461,8 +465,15 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                       fontFamily: banner.headline.fontFamily
                         ? `"${banner.headline.fontFamily}", 'Be Vietnam Pro', sans-serif`
                         : undefined,
+                      textAlign: banner.headline.textAlign || 'center',
                     }}
-                    className="font-black tracking-tight leading-snug uppercase text-left font-display"
+                    className={`font-black tracking-tight leading-snug uppercase font-display ${
+                      (banner.headline.textAlign || 'center') === 'center'
+                        ? 'text-center'
+                        : banner.headline.textAlign === 'right'
+                        ? 'text-right'
+                        : 'text-left'
+                    }`}
                   >
                     {renderHighlightedHeadline()}
                   </div>

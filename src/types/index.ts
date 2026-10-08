@@ -136,6 +136,7 @@ export interface FooterBannerConfig {
     fontFamily?: string;
     highlightStyle?: 'color' | 'box';
     textTransform?: 'uppercase' | 'none';
+    textAlign?: 'left' | 'center' | 'right';
   };
 
   // 2 Columns comparison mode (như ảnh 2 bác sĩ)

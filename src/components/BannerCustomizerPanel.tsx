@@ -11,6 +11,9 @@ import {
   Image as ImageIcon,
   Flame,
   Layout,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from 'lucide-react';
 
 interface BannerCustomizerPanelProps {
@@ -64,9 +67,9 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
   // Presets with User's Yellow Showroom as #1 Dominant Theme
   const newsPresets = [
     {
-      name: '⭐ MẪU VÀNG CHỦ ĐẠO: Showroom Ô Tô & Bán Hàng (37CAR)',
-      symbol: '37',
-      badge: 'CAR',
+      name: '⭐ MẪU VÀNG CHỦ ĐẠO: Tin Tức 24H NGHỆ AN (Căn Giữa)',
+      symbol: '24H',
+      badge: 'NGHỆ AN',
       color: '#ea580c',
       bg: '#facc15', // User's requested primary signature yellow!
       style: 'theanh28-news' as BannerStyleType,
@@ -74,6 +77,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
       highlights: 'TRẢ GÓP 70%, LÃI SUẤT THẤP',
       highlightColor: '#dc2626',
       highlightStyle: 'color' as 'color' | 'box',
+      textAlign: 'center' as 'left' | 'center' | 'right',
       fontFamily: 'Montserrat',
       hotline: '0987 361 234',
       email: 'Số 82 Đại Lộ Lê Nin',
@@ -170,6 +174,7 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
         highlightColor: p.highlightColor,
         highlightStyle: p.highlightStyle,
         fontFamily: p.fontFamily,
+        textAlign: (p as any).textAlign || 'center',
         color: p.bg === '#09090b' ? '#ffffff' : '#09090b',
       },
       twoColumns: {
@@ -450,6 +455,41 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
               </div>
             </div>
 
+            {/* Quick Suggestions for Logo & Badge */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-0.5">
+              <span className="text-[10px] text-neutral-500 font-mono shrink-0">Gợi ý nhanh:</span>
+              {[
+                { symbol: '24H', badge: 'NGHỆ AN', isSpecial: true },
+                { symbol: '37', badge: 'CAR' },
+                { symbol: '28', badge: 'NEWS' },
+                { symbol: 'VIP', badge: 'AUTO' },
+                { symbol: 'HOT', badge: 'TIN NÓNG' },
+              ].map((sug, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() =>
+                    onUpdateBanner({
+                      brandLogo: {
+                        ...banner.brandLogo,
+                        symbolText: sug.symbol,
+                        badgeText: sug.badge,
+                      },
+                    })
+                  }
+                  className={`px-2.5 py-1 text-[11px] rounded-md font-bold whitespace-nowrap border transition-all ${
+                    banner.brandLogo.symbolText === sug.symbol && banner.brandLogo.badgeText === sug.badge
+                      ? 'bg-amber-400 text-black border-amber-400 shadow-xs ring-1 ring-amber-400/50'
+                      : sug.isSpecial
+                      ? 'bg-amber-400/20 text-amber-300 border-amber-400/50 hover:bg-amber-400/30'
+                      : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:text-white hover:bg-neutral-800'
+                  }`}
+                >
+                  [{sug.symbol}] [{sug.badge}]
+                </button>
+              ))}
+            </div>
+
             {/* Custom Logo Image Upload or Reset */}
             <div className="p-2.5 bg-neutral-900/80 rounded-lg border border-neutral-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -536,6 +576,69 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
             placeholder="HỖ TRỢ TRẢ GÓP 70% · DUYỆT HỒ SƠ NHANH..."
             className="w-full bg-neutral-950 border border-neutral-700 rounded-lg p-2.5 text-xs text-white font-bold leading-relaxed focus:outline-none focus:border-amber-400"
           />
+        </div>
+
+        {/* Text Alignment Controls (Căn trái, Căn giữa trang, Căn phải) */}
+        <div className="flex items-center justify-between p-2 bg-neutral-950 rounded-lg border border-neutral-800">
+          <span className="text-[11px] text-neutral-300 font-semibold flex items-center gap-1">
+            <AlignCenter className="w-3.5 h-3.5 text-amber-400" />
+            <span>Căn lề trang:</span>
+          </span>
+          <div className="flex items-center gap-1 bg-neutral-900 p-0.5 rounded-lg border border-neutral-700/60">
+            <button
+              type="button"
+              onClick={() =>
+                onUpdateBanner({
+                  headline: { ...banner.headline, textAlign: 'left' },
+                })
+              }
+              className={`px-2 py-1 text-xs rounded-md font-bold flex items-center gap-1 transition-all ${
+                banner.headline.textAlign === 'left'
+                  ? 'bg-amber-400 text-black shadow-xs'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+              title="Căn lề trái"
+            >
+              <AlignLeft className="w-3.5 h-3.5" />
+              <span>Trái</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                onUpdateBanner({
+                  headline: { ...banner.headline, textAlign: 'center' },
+                })
+              }
+              className={`px-2.5 py-1 text-xs rounded-md font-bold flex items-center gap-1 transition-all ${
+                (banner.headline.textAlign || 'center') === 'center'
+                  ? 'bg-amber-400 text-black shadow-xs ring-1 ring-amber-400/50'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+              title="Căn giữa trang (Khuyên dùng)"
+            >
+              <AlignCenter className="w-3.5 h-3.5" />
+              <span>Căn giữa trang</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                onUpdateBanner({
+                  headline: { ...banner.headline, textAlign: 'right' },
+                })
+              }
+              className={`px-2 py-1 text-xs rounded-md font-bold flex items-center gap-1 transition-all ${
+                banner.headline.textAlign === 'right'
+                  ? 'bg-amber-400 text-black shadow-xs'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+              title="Căn lề phải"
+            >
+              <AlignRight className="w-3.5 h-3.5" />
+              <span>Phải</span>
+            </button>
+          </div>
         </div>
 
         {/* Font Family Selector (100% Vietnamese tested) */}
