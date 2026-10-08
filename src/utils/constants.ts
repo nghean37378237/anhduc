@@ -57,6 +57,7 @@ export const DEFAULT_FOOTER_BANNER: FooterBannerConfig = {
     highlightStyle: 'color',
     textTransform: 'uppercase',
     textAlign: 'center',
+    offsetY: 0,
   },
 
   twoColumns: {

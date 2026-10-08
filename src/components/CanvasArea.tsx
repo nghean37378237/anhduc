@@ -273,6 +273,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
             className="relative w-full"
             style={{
               height: `${topPhotosHeightPct}%`,
+              backgroundColor: settings.borderColor || settings.backgroundColor || '#ffffff',
             }}
           >
             {template.slots.map((slotDef) => {
@@ -280,13 +281,26 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
               const isSelected = selectedSlotId === slotDef.id;
               const isDragTarget = dragOverSlotId === slotDef.id;
 
-              const slotGapHalf = settings.innerGap * 0.18;
+              const isMultiPhoto = template.slots.length > 1;
+              const gapPx = (settings.innerGap ?? 8) * 0.45;
+              const halfGapPx = gapPx / 2;
+
               const adjustedHeight = isBannerMode
                 ? (slotDef.height / 68) * 100
                 : slotDef.height;
               const adjustedY = isBannerMode
                 ? (slotDef.y / 68) * 100
                 : slotDef.y;
+
+              const isLeftEdge = slotDef.x < 1;
+              const isRightEdge = slotDef.x + slotDef.width > 99;
+              const isTopEdge = adjustedY < 1;
+              const isBottomEdge = adjustedY + adjustedHeight > 99;
+
+              const leftInset = isMultiPhoto ? (isLeftEdge ? 0 : halfGapPx) : 0;
+              const rightInset = isMultiPhoto ? (isRightEdge ? 0 : halfGapPx) : 0;
+              const topInset = isMultiPhoto ? (isTopEdge ? 0 : halfGapPx) : 0;
+              const bottomInset = isMultiPhoto ? (isBottomEdge ? 0 : halfGapPx) : 0;
 
               return (
                 <div
@@ -302,10 +316,10 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                   onDrop={(e) => handleSlotDrop(e, slotDef.id)}
                   style={{
                     position: 'absolute',
-                    left: `calc(${slotDef.x}% + ${slotGapHalf}px)`,
-                    top: `calc(${adjustedY}% + ${slotGapHalf}px)`,
-                    width: `calc(${slotDef.width}% - ${slotGapHalf * 2}px)`,
-                    height: `calc(${adjustedHeight}% - ${slotGapHalf * 2}px)`,
+                    left: `calc(${slotDef.x}% + ${leftInset}px)`,
+                    top: `calc(${adjustedY}% + ${topInset}px)`,
+                    width: `calc(${slotDef.width}% - ${leftInset + rightInset}px)`,
+                    height: `calc(${adjustedHeight}% - ${topInset + bottomInset}px)`,
                     borderRadius: isBannerMode ? 0 : `${settings.cellRadius * 0.4}px`,
                   }}
                   className={`group relative overflow-hidden cursor-pointer transition-all duration-150 ${
@@ -454,7 +468,12 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
               )}
 
               {/* Main Headline or 2-Columns */}
-              <div className="relative z-10 pt-2 sm:pt-3">
+              <div
+                className="relative z-10 pt-2 sm:pt-3 transition-transform duration-150 ease-out"
+                style={{
+                  transform: `translateY(-${((banner.headline.offsetY || 0) * 0.55).toFixed(1)}px)`,
+                }}
+              >
                 {banner.twoColumns && banner.twoColumns.enabled ? (
                   /* Two Columns Comparison Mode */
                   <div className="grid grid-cols-2 gap-3 text-left">

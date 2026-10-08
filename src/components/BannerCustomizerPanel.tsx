@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { FooterBannerConfig, BannerStyleType } from '../types';
+import { FooterBannerConfig, BannerStyleType, CanvasSettings } from '../types';
 import {
   Upload,
   Sparkles,
@@ -10,6 +10,8 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  ArrowUp,
+  Maximize2,
 } from 'lucide-react';
 
 interface BannerCustomizerPanelProps {
@@ -17,6 +19,8 @@ interface BannerCustomizerPanelProps {
   onUpdateBanner: (updated: Partial<FooterBannerConfig>) => void;
   onSwitchPhotoCount: (count: 1 | 2 | 3) => void;
   currentPhotoCount: number;
+  settings?: CanvasSettings;
+  onUpdateSettings?: (updated: Partial<CanvasSettings>) => void;
   theme?: 'light' | 'dark';
 }
 
@@ -25,6 +29,8 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
   onUpdateBanner,
   onSwitchPhotoCount,
   currentPhotoCount,
+  settings,
+  onUpdateSettings,
   theme = 'light',
 }) => {
   const isLight = theme === 'light';
@@ -379,6 +385,141 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
             </div>
             <span>3 Ảnh (1 Lớn + 2 Nhỏ)</span>
           </button>
+        </div>
+      </div>
+
+      {/* Viền Giữa Các Ảnh (Mặc định: Màu Trắng, Tùy chỉnh To / Nhỏ / Màu Sắc) */}
+      <div
+        className={`p-3.5 rounded-xl border space-y-3 transition-colors ${
+          isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs' : 'bg-neutral-950 border-neutral-800'
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <label
+            className={`text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              isLight ? 'text-slate-800' : 'text-neutral-200'
+            }`}
+          >
+            <Maximize2 className="w-3.5 h-3.5 text-amber-500" />
+            <span>Viền Giữa Các Ảnh (Mặc định: Màu Trắng)</span>
+          </label>
+          <span
+            className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+              isLight ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-amber-400/20 text-amber-300'
+            }`}
+          >
+            {settings?.innerGap ?? 8}px
+          </span>
+        </div>
+
+        {/* Slider chỉnh độ dày viền to/nhỏ */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className={isLight ? 'text-slate-600' : 'text-neutral-400'}>
+              Độ dày viền (to / nhỏ):
+            </span>
+            <span
+              className={`font-mono tabular-nums font-bold ${
+                isLight ? 'text-slate-800' : 'text-neutral-300'
+              }`}
+            >
+              {settings?.innerGap ?? 8}px
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={24}
+            value={settings?.innerGap ?? 8}
+            onChange={(e) => onUpdateSettings?.({ innerGap: Number(e.target.value) })}
+            className={`w-full accent-amber-500 h-1.5 rounded-lg appearance-none cursor-pointer ${
+              isLight ? 'bg-slate-200' : 'bg-neutral-800'
+            }`}
+          />
+          <div className="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+            <span className={`text-[10px] font-mono shrink-0 ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
+              Nhanh:
+            </span>
+            {[
+              { label: '0px (Dính liền)', val: 0 },
+              { label: '4px (Mảnh)', val: 4 },
+              { label: '8px (Mặc định)', val: 8 },
+              { label: '14px (Dày)', val: 14 },
+              { label: '20px (To)', val: 20 },
+            ].map((b) => (
+              <button
+                key={b.val}
+                type="button"
+                onClick={() => onUpdateSettings?.({ innerGap: b.val })}
+                className={`px-2 py-0.5 text-[11px] rounded-md font-bold whitespace-nowrap border transition-all ${
+                  (settings?.innerGap ?? 8) === b.val
+                    ? 'bg-amber-400 text-black border-amber-400 shadow-xs ring-1 ring-amber-400/50'
+                    : isLight
+                    ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                    : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:text-white'
+                }`}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Chỉnh màu sắc viền khác nhau */}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className={isLight ? 'text-slate-600' : 'text-neutral-400'}>
+              Màu sắc viền giữa các ảnh:
+            </span>
+            <span className="font-mono text-[10px] font-bold text-amber-700">
+              {settings?.borderColor || '#ffffff'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {[
+              { name: 'Trắng (Mặc định)', color: '#ffffff' },
+              { name: 'Đen', color: '#000000' },
+              { name: 'Vàng Showroom', color: '#facc15' },
+              { name: 'Đỏ Nổi Bật', color: '#dc2626' },
+              { name: 'Xám Bạc', color: '#e2e8f0' },
+              { name: 'Xanh Ngọc', color: '#059669' },
+            ].map((bc) => {
+              const isSelected = (settings?.borderColor || '#ffffff').toLowerCase() === bc.color.toLowerCase();
+              return (
+                <button
+                  key={bc.color}
+                  type="button"
+                  onClick={() => onUpdateSettings?.({ borderColor: bc.color, backgroundColor: bc.color })}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border transition-all ${
+                    isSelected
+                      ? 'border-amber-500 bg-amber-50 text-amber-950 ring-2 ring-amber-400 shadow-2xs font-bold'
+                      : isLight
+                      ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                      : 'border-neutral-800 bg-neutral-900 text-neutral-300 hover:text-white'
+                  }`}
+                >
+                  <span
+                    className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
+                    style={{ backgroundColor: bc.color }}
+                  />
+                  <span>{bc.name}</span>
+                </button>
+              );
+            })}
+
+            {/* Custom Color Picker */}
+            <div className="flex items-center gap-1 pl-1">
+              <span className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-neutral-400'}`}>Tùy ý:</span>
+              <input
+                type="color"
+                value={settings?.borderColor || '#ffffff'}
+                onChange={(e) => onUpdateSettings?.({ borderColor: e.target.value, backgroundColor: e.target.value })}
+                className="w-6 h-6 rounded border border-slate-300 bg-transparent cursor-pointer"
+                title="Chọn màu viền bất kỳ"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -970,6 +1111,85 @@ export const BannerCustomizerPanel: React.FC<BannerCustomizerPanelProps> = ({
               isLight ? 'bg-slate-200' : 'bg-neutral-800'
             }`}
           />
+        </div>
+
+        {/* Vị trí tiêu đề: Đẩy lên cao (Lên tới 100px) */}
+        <div
+          className={`p-3 rounded-xl border space-y-2.5 transition-colors ${
+            isLight ? 'bg-slate-50 border-slate-200/90 shadow-2xs' : 'bg-neutral-950 border-neutral-800'
+          }`}
+        >
+          <div className="flex items-center justify-between text-xs">
+            <span
+              className={`font-bold flex items-center gap-1.5 ${
+                isLight ? 'text-slate-800' : 'text-neutral-200'
+              }`}
+            >
+              <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
+              <span>Đẩy Tiêu Đề Lên Cao (Lên Tới 100px):</span>
+            </span>
+            <span
+              className={`font-mono font-bold tabular-nums text-xs px-2 py-0.5 rounded ${
+                (banner.headline.offsetY || 0) > 0
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                    : 'bg-amber-400/20 text-amber-300'
+                  : isLight
+                  ? 'bg-slate-200 text-slate-700'
+                  : 'bg-neutral-800 text-neutral-400'
+              }`}
+            >
+              +{banner.headline.offsetY || 0}px
+            </span>
+          </div>
+
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={banner.headline.offsetY || 0}
+            onChange={(e) =>
+              onUpdateBanner({
+                headline: { ...banner.headline, offsetY: Number(e.target.value) },
+              })
+            }
+            className={`w-full accent-amber-500 h-1.5 rounded-lg appearance-none cursor-pointer ${
+              isLight ? 'bg-slate-200' : 'bg-neutral-800'
+            }`}
+          />
+
+          <div className="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+            <span className={`text-[10px] font-mono shrink-0 ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
+              Nhanh:
+            </span>
+            {[
+              { label: '0px (Gốc)', val: 0 },
+              { label: '25px', val: 25 },
+              { label: '50px', val: 50 },
+              { label: '75px', val: 75 },
+              { label: '100px (Lên tối đa)', val: 100 },
+            ].map((b) => (
+              <button
+                key={b.val}
+                type="button"
+                onClick={() =>
+                  onUpdateBanner({
+                    headline: { ...banner.headline, offsetY: b.val },
+                  })
+                }
+                className={`px-2 py-0.5 text-[11px] rounded-md font-bold whitespace-nowrap border transition-all ${
+                  (banner.headline.offsetY || 0) === b.val
+                    ? 'bg-amber-400 text-black border-amber-400 shadow-xs ring-1 ring-amber-400/50'
+                    : isLight
+                    ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                    : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:text-white'
+                }`}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

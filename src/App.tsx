@@ -40,9 +40,10 @@ export default function App() {
   const [settings, setSettings] = useState<CanvasSettings>({
     aspectRatio: '1:1', // Priority 1:1 as requested
     outerPadding: 0,
-    innerGap: 8,
-    cellRadius: 8,
-    backgroundColor: '#09090b',
+    innerGap: 8, // Mặc định có viền giữa các ảnh
+    cellRadius: 0, // Vuông góc chuẩn showroom & tin tức
+    backgroundColor: '#ffffff', // Mặc định nền trắng
+    borderColor: '#ffffff', // Mặc định viền giữa các ảnh màu trắng theo yêu cầu
     backgroundType: 'solid',
     backgroundGradient: {
       from: '#1e1b4b',
@@ -489,6 +490,8 @@ export default function App() {
               onUpdateBanner={handleUpdateBanner}
               onSwitchPhotoCount={handleSwitchPhotoCount}
               currentPhotoCount={currentTemplate.photoCount}
+              settings={settings}
+              onUpdateSettings={(up) => setSettings((s) => ({ ...s, ...up }))}
               theme={appTheme}
             />
           )}

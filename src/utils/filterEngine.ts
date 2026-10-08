@@ -459,7 +459,8 @@ export async function drawFooterBanner(
 
   // 5. Headline or 2-Columns Layout
   const contentPadX = width * 0.045;
-  const contentStartY = bannerY + bannerHeight * 0.28;
+  const headlineOffsetY = (banner.headline.offsetY || 0) * (width / 1080);
+  const contentStartY = bannerY + bannerHeight * 0.28 - headlineOffsetY;
   const usableWidth = width - contentPadX * 2;
   const preferredFontFamily = banner.headline.fontFamily || 'Montserrat';
 
@@ -602,7 +603,8 @@ export async function renderFullCollage(
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
   } else {
-    ctx.fillStyle = settings.backgroundColor;
+    // Fill with borderColor so divider lines between photos are crisp white by default
+    ctx.fillStyle = settings.borderColor || settings.backgroundColor || '#ffffff';
     ctx.fillRect(0, 0, width, height);
   }
 
@@ -632,9 +634,15 @@ export async function renderFullCollage(
   // 3. Photo Slots
   const outerPad = (settings.outerPadding / 100) * (width * 0.15);
   const gap = (settings.innerGap / 100) * (width * 0.08);
+  const halfGap = gap / 2;
 
   const usableW = width - outerPad * 2;
   const usableH = height - outerPad * 2;
+
+  const isBannerType = template.hasFooterBanner || settings.footerBanner.enabled;
+  const isMultiPhoto = template.slots.length > 1;
+  const bannerH = isBannerType ? (settings.footerBanner.heightPercent / 100) * usableH : 0;
+  const topPhotosH = isBannerType ? usableH - bannerH : usableH;
 
   const loadImage = (url: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
@@ -650,12 +658,25 @@ export async function renderFullCollage(
     const slotData = slots[slotDef.id];
     if (!slotData || !slotData.imageUrl) continue;
 
-    const slotX = outerPad + (slotDef.x / 100) * usableW + gap / 2;
-    const slotY = outerPad + (slotDef.y / 100) * usableH + gap / 2;
-    const slotW = Math.max(1, (slotDef.width / 100) * usableW - gap);
-    const slotH = Math.max(1, (slotDef.height / 100) * usableH - gap);
+    const adjustedHeight = isBannerType ? (slotDef.height / 68) * 100 : slotDef.height;
+    const adjustedY = isBannerType ? (slotDef.y / 68) * 100 : slotDef.y;
 
-    const radius = Math.min(settings.cellRadius, Math.min(slotW, slotH) / 2);
+    const isLeftEdge = slotDef.x < 1;
+    const isRightEdge = slotDef.x + slotDef.width > 99;
+    const isTopEdge = adjustedY < 1;
+    const isBottomEdge = adjustedY + adjustedHeight > 99;
+
+    const leftInset = isMultiPhoto ? (isLeftEdge ? 0 : halfGap) : 0;
+    const rightInset = isMultiPhoto ? (isRightEdge ? 0 : halfGap) : 0;
+    const topInset = isMultiPhoto ? (isTopEdge ? 0 : halfGap) : 0;
+    const bottomInset = isMultiPhoto ? (isBottomEdge ? 0 : halfGap) : 0;
+
+    const slotX = outerPad + (slotDef.x / 100) * usableW + leftInset;
+    const slotY = outerPad + (adjustedY / 100) * topPhotosH + topInset;
+    const slotW = Math.max(1, (slotDef.width / 100) * usableW - leftInset - rightInset);
+    const slotH = Math.max(1, (adjustedHeight / 100) * topPhotosH - topInset - bottomInset);
+
+    const radius = isBannerType ? 0 : Math.min(settings.cellRadius, Math.min(slotW, slotH) / 2);
 
     ctx.save();
     ctx.beginPath();

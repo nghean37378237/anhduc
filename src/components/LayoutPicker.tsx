@@ -270,6 +270,60 @@ export const LayoutPicker: React.FC<LayoutPickerProps> = ({
             }`}
           />
         </div>
+
+        {/* Border Color */}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className={isLight ? 'text-slate-600' : 'text-neutral-400'}>
+              Màu viền giữa các ảnh:
+            </span>
+            <span className="font-mono text-[10px] font-bold text-amber-600">
+              {settings.borderColor || '#ffffff'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {[
+              { name: 'Trắng (Mặc định)', color: '#ffffff' },
+              { name: 'Đen', color: '#000000' },
+              { name: 'Vàng', color: '#facc15' },
+              { name: 'Đỏ', color: '#dc2626' },
+              { name: 'Xám', color: '#e2e8f0' },
+            ].map((bc) => {
+              const isSelected = (settings.borderColor || '#ffffff').toLowerCase() === bc.color.toLowerCase();
+              return (
+                <button
+                  key={bc.color}
+                  type="button"
+                  onClick={() => onUpdateSettings({ borderColor: bc.color, backgroundColor: bc.color })}
+                  className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold border transition-all ${
+                    isSelected
+                      ? 'border-amber-500 bg-amber-50 text-amber-950 ring-1 ring-amber-400 shadow-2xs'
+                      : isLight
+                      ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+                      : 'border-neutral-800 bg-neutral-900 text-neutral-300 hover:text-white'
+                  }`}
+                >
+                  <span
+                    className="w-3 h-3 rounded-full border border-black/20 shrink-0"
+                    style={{ backgroundColor: bc.color }}
+                  />
+                  <span>{bc.name}</span>
+                </button>
+              );
+            })}
+
+            <div className="flex items-center gap-1 pl-1">
+              <span className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-neutral-400'}`}>Tùy ý:</span>
+              <input
+                type="color"
+                value={settings.borderColor || '#ffffff'}
+                onChange={(e) => onUpdateSettings({ borderColor: e.target.value, backgroundColor: e.target.value })}
+                className="w-5 h-5 rounded border border-slate-300 bg-transparent cursor-pointer"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className={`h-px ${isLight ? 'bg-slate-200' : 'bg-neutral-800'}`} />

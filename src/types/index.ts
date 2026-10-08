@@ -137,6 +137,7 @@ export interface FooterBannerConfig {
     highlightStyle?: 'color' | 'box';
     textTransform?: 'uppercase' | 'none';
     textAlign?: 'left' | 'center' | 'right';
+    offsetY?: number; // Đẩy tiêu đề lên cao (0 đến 100px)
   };
 
   // 2 Columns comparison mode (như ảnh 2 bác sĩ)
@@ -169,9 +170,10 @@ export interface FooterBannerConfig {
 export interface CanvasSettings {
   aspectRatio: AspectRatioId;
   outerPadding: number; // 0 to 60px
-  innerGap: number; // 0 to 40px
+  innerGap: number; // 0 to 40px (Độ dày viền giữa các ảnh)
   cellRadius: number; // 0 to 48px
   backgroundColor: string;
+  borderColor?: string; // Màu viền giữa các ảnh (Mặc định: #ffffff)
   backgroundType: BackgroundType;
   backgroundGradient: {
     from: string;
